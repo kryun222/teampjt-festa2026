@@ -94,63 +94,74 @@ async function handleDashboardCalendarNavigation(request) {
     </header>
 
     <!-- ==================== Main ==================== -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-8">
+    <main
+      class="flex-grow w-full"
+      :class="activeTab === 'main' ? 'px-0 py-0' : 'max-w-7xl mx-auto px-4 py-8'"
+    >
       <!-- ================================================== -->
       <!-- 1. 홈 탭 -->
       <!-- ================================================== -->
-      <section v-show="activeTab === 'main'" class="space-y-12">
-        <!-- Hero -->
-        <div
-          class="relative h-[420px] rounded-3xl overflow-hidden neon-border flex items-center justify-center text-center p-6 bg-cover bg-center"
-          style="
-            background-image:
-              linear-gradient(to bottom, rgba(11, 15, 25, 0.25), rgba(11, 15, 25, 0.95)),
-              url('https://tong.visitkorea.or.kr/cms/resource/86/4055386_image2_1.jpg');
-          "
-        >
-          <div class="relative z-10 space-y-6">
-            <span
-              class="inline-block px-4 py-1.5 rounded-full bg-pink-500/20 border border-pink-500 text-pink-400 text-sm font-bold tracking-widest"
-            >
-              SEOUL FESTIVAL PORTAL
-            </span>
+      <section v-show="activeTab === 'main'" class="festival-main-stage relative overflow-hidden">
+        <div class="festival-main-stage__wave festival-main-stage__wave--one" aria-hidden="true"></div>
+        <div class="festival-main-stage__wave festival-main-stage__wave--two" aria-hidden="true"></div>
+        <div class="festival-main-stage__spark festival-main-stage__spark--one" aria-hidden="true"></div>
+        <div class="festival-main-stage__spark festival-main-stage__spark--two" aria-hidden="true"></div>
+        <div class="festival-main-stage__spark festival-main-stage__spark--three" aria-hidden="true"></div>
+        <div class="festival-main-stage__spark festival-main-stage__spark--four" aria-hidden="true"></div>
 
-            <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight neon-text text-white">
-              서울, 축제의 빛으로 물들다
-            </h1>
-
-            <p class="text-gray-300 max-w-2xl mx-auto text-sm sm:text-base">
-              공공데이터를 기반으로 서울에서 개최되는 축제와 행사를 한눈에 확인해 보세요.
-            </p>
-
-            <div class="flex flex-wrap justify-center gap-4">
-              <button
-                type="button"
-                class="neon-btn px-6 py-3 rounded-xl font-bold text-white shadow-lg"
-                @click="switchTab('calendar')"
+        <div class="relative z-10 mx-auto max-w-7xl px-4 py-8 space-y-12">
+          <!-- Hero -->
+          <div
+            class="relative h-[420px] rounded-3xl overflow-hidden neon-border flex items-center justify-center text-center p-6 bg-cover bg-center"
+            style="
+              background-image:
+                linear-gradient(to bottom, rgba(11, 15, 25, 0.25), rgba(11, 15, 25, 0.95)),
+                url('https://tong.visitkorea.or.kr/cms/resource/86/4055386_image2_1.jpg');
+            "
+          >
+            <div class="relative z-10 space-y-6">
+              <span
+                class="inline-block px-4 py-1.5 rounded-full bg-pink-500/20 border border-pink-500 text-pink-400 text-sm font-bold tracking-widest"
               >
-                축제 일정 보러가기
-              </button>
+                SEOUL FESTIVAL PORTAL
+              </span>
 
-              <button
-                type="button"
-                class="bg-gray-800/80 border border-gray-700 hover:bg-gray-700 px-6 py-3 rounded-xl font-bold transition"
-                @click="switchTab('dashboard')"
-              >
-                통계 분석
-              </button>
+              <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight neon-text text-white">
+                서울, 축제의 빛으로 물들다
+              </h1>
+
+              <p class="text-gray-300 max-w-2xl mx-auto text-sm sm:text-base">
+                공공데이터를 기반으로 서울에서 개최되는 축제와 행사를 한눈에 확인해 보세요.
+              </p>
+
+              <div class="flex flex-wrap justify-center gap-4">
+                <button
+                  type="button"
+                  class="neon-btn px-6 py-3 rounded-xl font-bold text-white shadow-lg"
+                  @click="switchTab('calendar')"
+                >
+                  축제 일정 보러가기
+                </button>
+
+                <button
+                  type="button"
+                  class="bg-gray-800/80 border border-gray-700 hover:bg-gray-700 px-6 py-3 rounded-xl font-bold transition"
+                  @click="switchTab('dashboard')"
+                >
+                  통계 분석
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- 축제 카드 영역 -->
-        <div>
-          <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-            <span class="w-2.5 h-6 bg-pink-500 rounded"></span>
-            지금 뜨고 있는 서울의 주요 축제
-          </h2>
+          <!-- 축제 카드 영역 -->
+          <div>
+            <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+              <span class="w-2.5 h-6 bg-pink-500 rounded"></span>
+              지금 뜨고 있는 서울의 주요 축제
+            </h2>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- 카드 1 -->
             <article
               class="festival-card bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-lg"
@@ -273,6 +284,7 @@ async function handleDashboardCalendarNavigation(request) {
                 </div>
               </div>
             </article>
+            </div>
           </div>
         </div>
       </section>
@@ -288,9 +300,9 @@ async function handleDashboardCalendarNavigation(request) {
       <!-- 3. 커뮤니티 탭 -->
       <!-- ================================================== -->
       <section v-show="activeTab === 'community'">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div>
           <!-- 게시판 영역 -->
-          <div class="lg:col-span-2">
+          <div>
             <div class="bg-gray-900/50 p-6 rounded-2xl border border-gray-800">
               <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
                 <div>
@@ -404,48 +416,6 @@ async function handleDashboardCalendarNavigation(request) {
             </div>
           </div>
 
-          <!-- 챗봇 영역 -->
-          <aside
-            class="bg-gray-900/50 p-6 rounded-2xl border border-gray-800 flex flex-col h-[520px]"
-          >
-            <h3 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-green-500"></span>
-              서울축제 인공지능 챗봇
-            </h3>
-
-            <p class="text-xs text-gray-400 mb-4">찾고 싶은 축제나 장소를 입력해 보세요.</p>
-
-            <div
-              class="flex-grow overflow-y-auto bg-gray-950 p-4 rounded-xl border border-gray-800 space-y-3 mb-3 text-sm"
-            >
-              <div class="text-left">
-                <span class="inline-block bg-gray-800 p-2.5 rounded-lg text-gray-200">
-                  반갑습니다! 저는 축제 가이드 봇입니다.
-                </span>
-              </div>
-
-              <div class="text-right">
-                <span class="inline-block bg-pink-600 p-2.5 rounded-lg text-white">
-                  야간 축제를 추천해줘.
-                </span>
-              </div>
-            </div>
-
-            <div class="flex gap-2">
-              <input
-                type="text"
-                placeholder="메시지를 입력하세요..."
-                class="min-w-0 flex-grow bg-gray-950 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-pink-500"
-              />
-
-              <button
-                type="button"
-                class="bg-pink-600 hover:bg-pink-500 text-white px-4 py-2 rounded-lg text-sm font-bold"
-              >
-                전송
-              </button>
-            </div>
-          </aside>
         </div>
       </section>
 
