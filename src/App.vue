@@ -522,13 +522,12 @@ function cancelEditComment(post) {
                 </div>
               </div>
 
-              <!-- 게시글 카드 -->
-              <article class="bg-gray-950 p-5 rounded-xl border border-gray-800 space-y-3">
-                <div class="flex justify-between items-start gap-4">
-                  <div>
-                    <span class="text-xs text-gray-500 font-mono">
-                      작성자: 서울여행자 | 2026-07-14
-                    </span>
+              <!-- 게시글 카드 디자인 -->
+              <template v-if="posts.length">
+                <article v-for="post in posts" :key="post.id" class="bg-gray-950 p-5 rounded-xl border border-gray-800 space-y-3 mb-4">
+                  <div class="flex justify-between items-start gap-4">
+                    <div>
+                      <span class="text-xs text-gray-500 font-mono">작성자: {{ post.author }} | {{ post.date }}</span>
 
                       <h3 class="text-base font-bold text-white mt-1">{{ post.title }}</h3>
                     </div>
