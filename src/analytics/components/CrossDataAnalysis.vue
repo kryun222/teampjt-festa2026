@@ -2,6 +2,14 @@
 import { computed, ref } from 'vue'
 import { analyticsInsights } from '@/analytics/insights'
 
+const emit = defineEmits(['navigate-calendar'])
+
+function goToFestivalCalendar() {
+  emit('navigate-calendar', {
+    type: 'current',
+  })
+}
+
 // ============================================================================
 // 1. 서브탭
 // ============================================================================
@@ -166,8 +174,7 @@ const donutDashoffset = computed(() => donutCircumference * (1 - freeFestivalRat
           <span
             class="inline-block w-fit rounded-full border border-pink-500 bg-pink-500/20 px-3 py-1 text-xs font-bold tracking-wide text-pink-400"
           >
-            오늘의 추천 ·
-            {{ todayRecommendation.district }}
+            오늘의 추천 · {{ todayRecommendation.district }}
           </span>
 
           <h4 class="text-2xl font-bold text-white">
@@ -209,10 +216,7 @@ const donutDashoffset = computed(() => donutCircumference * (1 - freeFestivalRat
           </div>
 
           <div class="p-4">
-            <p class="text-xs text-purple-300">
-              추천 숙소 ·
-              {{ todayRecommendation.district }}
-            </p>
+            <p class="text-xs text-purple-300">추천 숙소 · {{ todayRecommendation.district }}</p>
 
             <h4 class="mt-1 text-lg font-semibold text-white">오늘의 숙소 팁</h4>
 
@@ -243,8 +247,7 @@ const donutDashoffset = computed(() => donutCircumference * (1 - freeFestivalRat
 
           <div class="p-4">
             <p class="text-xs text-gray-500">
-              {{ todayRecommendation.category.label }}
-              ·
+              {{ todayRecommendation.category.label }} ·
               {{ todayRecommendation.category.district }}
             </p>
 
@@ -272,8 +275,7 @@ const donutDashoffset = computed(() => donutCircumference * (1 - freeFestivalRat
           </span>
 
           <h4 class="text-lg font-semibold text-white">
-            지금 진행 중인 축제
-            {{ ongoingFestivalCount }}건
+            지금 진행 중인 축제 {{ ongoingFestivalCount }}건
           </h4>
         </div>
 
@@ -336,6 +338,19 @@ const donutDashoffset = computed(() => donutCircumference * (1 - freeFestivalRat
           </p>
         </div>
       </article>
+
+      <!-- 축제 캘린더 이동 -->
+      <div class="flex justify-center border-t border-gray-800 pt-6">
+        <button
+          type="button"
+          class="group flex w-full items-center justify-center gap-2 rounded-xl border border-pink-500/40 bg-pink-500/10 px-5 py-3 text-sm font-semibold text-pink-300 transition duration-200 hover:-translate-y-0.5 hover:border-pink-400 hover:bg-pink-500/20 hover:text-pink-200 hover:shadow-[0_0_24px_rgba(236,72,153,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/70 sm:w-auto"
+          @click="goToFestivalCalendar"
+        >
+          <span>축제 캘린더에서 전체 일정 보기</span>
+
+          <span class="transition-transform duration-200 group-hover:translate-x-1"> → </span>
+        </button>
+      </div>
     </div>
 
     <!-- ================================================================ -->
@@ -431,8 +446,7 @@ const donutDashoffset = computed(() => donutCircumference * (1 - freeFestivalRat
                 </span>
 
                 <span class="text-right font-semibold text-purple-300">
-                  볼거리
-                  {{ item.contentScore }}건 · 숙소 {{ item.lodgingCount }}건
+                  볼거리 {{ item.contentScore }}건 · 숙소 {{ item.lodgingCount }}건
                 </span>
               </div>
             </div>
@@ -457,8 +471,7 @@ const donutDashoffset = computed(() => donutCircumference * (1 - freeFestivalRat
             <p class="text-xs font-semibold text-pink-400">선택한 지역</p>
 
             <h4 class="mt-1 text-2xl font-bold text-white">
-              {{ selectedDistrictDetail.name }}
-              여행 정보
+              {{ selectedDistrictDetail.name }} 여행 정보
             </h4>
 
             <p class="mt-2 text-sm text-gray-400">
@@ -468,23 +481,19 @@ const donutDashoffset = computed(() => donutCircumference * (1 - freeFestivalRat
 
           <div class="flex flex-wrap gap-2 text-xs">
             <span class="rounded-full bg-pink-500/10 px-3 py-1 text-pink-300">
-              관광지
-              {{ selectedDistrictDetail.summary.attractionCount }}건
+              관광지 {{ selectedDistrictDetail.summary.attractionCount }}건
             </span>
 
             <span class="rounded-full bg-amber-500/10 px-3 py-1 text-amber-300">
-              축제
-              {{ selectedDistrictDetail.summary.festivalCount }}건
+              축제 {{ selectedDistrictDetail.summary.festivalCount }}건
             </span>
 
             <span class="rounded-full bg-cyan-500/10 px-3 py-1 text-cyan-300">
-              코스
-              {{ selectedDistrictDetail.summary.courseCount }}건
+              코스 {{ selectedDistrictDetail.summary.courseCount }}건
             </span>
 
             <span class="rounded-full bg-purple-500/10 px-3 py-1 text-purple-300">
-              숙소
-              {{ selectedDistrictDetail.summary.lodgingCount }}건
+              숙소 {{ selectedDistrictDetail.summary.lodgingCount }}건
             </span>
           </div>
         </div>
@@ -553,8 +562,7 @@ const donutDashoffset = computed(() => donutCircumference * (1 - freeFestivalRat
         <!-- 선택 구 카테고리 대표 스팟 -->
         <div>
           <h5 class="text-lg font-semibold text-white">
-            {{ selectedDistrictDetail.name }}
-            카테고리 대표 스팟
+            {{ selectedDistrictDetail.name }} 카테고리 대표 스팟
           </h5>
 
           <p class="mt-1 text-xs leading-5 text-gray-500">
@@ -582,10 +590,7 @@ const donutDashoffset = computed(() => donutCircumference * (1 - freeFestivalRat
               </div>
 
               <div class="p-3">
-                <p class="text-[11px] text-gray-500">
-                  {{ item.label }} ·
-                  {{ item.district }}
-                </p>
+                <p class="text-[11px] text-gray-500">{{ item.label }} · {{ item.district }}</p>
 
                 <p class="mt-1 truncate text-sm font-semibold text-white">
                   {{ item.title || '등록된 정보가 없습니다.' }}
@@ -629,8 +634,7 @@ const donutDashoffset = computed(() => donutCircumference * (1 - freeFestivalRat
               </p>
 
               <p class="text-xs font-semibold text-cyan-300">
-                관광지
-                {{ item.attractionCount }}건 · 코스 0건
+                관광지 {{ item.attractionCount }}건 · 코스 0건
               </p>
             </div>
           </div>
@@ -676,8 +680,7 @@ const donutDashoffset = computed(() => donutCircumference * (1 - freeFestivalRat
           </div>
 
           <p class="mt-4 text-center text-xs text-gray-500">
-            축제·행사
-            {{ totalFestivalCount }}건 중 {{ freeFestivalCount }}건이 무료예요.
+            축제·행사 {{ totalFestivalCount }}건 중 {{ freeFestivalCount }}건이 무료예요.
           </p>
         </article>
 

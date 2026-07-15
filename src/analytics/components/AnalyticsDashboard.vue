@@ -32,11 +32,8 @@ function findNearestUpcomingFestival() {
 
 const kpis = computed(() => {
   const upcomingFestival = analyticsInsights.upcomingFestivals[0] || null
-
   const upcomingFestivalSource = findNearestUpcomingFestival()
-
   const topDistrict = analyticsInsights.districtScore[0] || null
-
   const topMonth = analyticsInsights.topFestivalMonth || null
 
   const topMonthNumber = Number(String(topMonth?.month || '').replace('월', ''))
@@ -95,8 +92,10 @@ const kpis = computed(() => {
   ]
 })
 
-function handleKpiActivate(request) {
-  if (!request) return
+function handleCalendarNavigation(request) {
+  if (!request?.type) {
+    return
+  }
 
   emit('navigate-calendar', request)
 }
@@ -113,10 +112,10 @@ function handleKpiActivate(request) {
         :subtitle="card.subtitle"
         :action-label="card.actionLabel"
         :disabled="card.disabled"
-        @activate="handleKpiActivate(card.request)"
+        @activate="handleCalendarNavigation(card.request)"
       />
     </div>
 
-    <CrossDataAnalysis />
+    <CrossDataAnalysis @navigate-calendar="handleCalendarNavigation" />
   </section>
 </template>
