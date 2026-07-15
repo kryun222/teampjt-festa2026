@@ -136,7 +136,7 @@ const donutDashoffset = computed(() => donutCircumference * (1 - freeFestivalRat
     </div>
 
     <!-- 서브탭 -->
-    <div class="flex gap-2 border-b border-gray-800 pb-3">
+    <div class="flex flex-wrap gap-2 border-b border-gray-800 pb-3">
       <button
         v-for="tab in subTabs"
         :key="tab.id"
@@ -260,205 +260,78 @@ const donutDashoffset = computed(() => donutCircumference * (1 - freeFestivalRat
     </div>
 
     <!-- ================================================================ -->
-    <!-- 최신 소식 탭 -->
-    <!-- ================================================================ -->
-    <div v-show="activeSubTab === 'news'" class="space-y-6">
-      <!-- 진행 중인 축제 -->
-      <article class="rounded-2xl border border-gray-800 bg-gray-950/80 p-6">
-        <div class="mb-4 flex items-center gap-2">
-          <span class="relative flex h-2.5 w-2.5">
-            <span
-              class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"
-            ></span>
-
-            <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-          </span>
-
-          <h4 class="text-lg font-semibold text-white">
-            지금 진행 중인 축제 {{ ongoingFestivalCount }}건
-          </h4>
-        </div>
-
-        <div class="space-y-2">
-          <div
-            v-for="item in ongoingFestivals"
-            :key="`${item.title}-${item.eventenddate}`"
-            class="flex items-center justify-between rounded-xl border border-gray-800 bg-gray-900/70 px-3 py-3"
-          >
-            <div class="min-w-0">
-              <p class="truncate text-sm text-gray-200">
-                {{ item.title }}
-              </p>
-
-              <p v-if="item.eventplace" class="truncate text-xs text-gray-500">
-                {{ item.eventplace }}
-              </p>
-            </div>
-
-            <span class="ml-3 whitespace-nowrap text-xs text-emerald-400">
-              ~{{ item.eventenddate.slice(4, 6) }}/{{ item.eventenddate.slice(6, 8) }}까지
-            </span>
-          </div>
-
-          <p v-if="ongoingFestivalCount === 0" class="text-sm text-gray-500">
-            지금 진행 중인 축제는 없어요.
-          </p>
-        </div>
-      </article>
-
-      <!-- 다가오는 축제 -->
-      <article class="rounded-2xl border border-gray-800 bg-gray-950/80 p-6">
-        <h4 class="mb-4 text-lg font-semibold text-white">다가오는 축제</h4>
-
-        <div class="space-y-3">
-          <div
-            v-for="item in upcomingFestivals"
-            :key="`${item.title}-${item.dDay}`"
-            class="flex items-center justify-between rounded-xl border border-gray-800 bg-gray-900/70 px-3 py-3"
-          >
-            <div class="min-w-0">
-              <p class="truncate text-sm text-gray-200">
-                {{ item.title }}
-              </p>
-
-              <p v-if="item.eventplace" class="truncate text-xs text-gray-500">
-                {{ item.eventplace }}
-              </p>
-            </div>
-
-            <span
-              class="ml-2 flex-shrink-0 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-xs font-semibold text-amber-400"
-            >
-              D-{{ item.dDay }}
-            </span>
-          </div>
-
-          <p v-if="upcomingFestivals.length === 0" class="text-sm text-gray-500">
-            예정된 축제 정보가 없어요.
-          </p>
-        </div>
-      </article>
-
-      <!-- 축제 캘린더 이동 -->
-      <div class="flex justify-center border-t border-gray-800 pt-6">
-        <button
-          type="button"
-          class="group flex w-full items-center justify-center gap-2 rounded-xl border border-pink-500/40 bg-pink-500/10 px-5 py-3 text-sm font-semibold text-pink-300 transition duration-200 hover:-translate-y-0.5 hover:border-pink-400 hover:bg-pink-500/20 hover:text-pink-200 hover:shadow-[0_0_24px_rgba(236,72,153,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/70 sm:w-auto"
-          @click="goToFestivalCalendar"
-        >
-          <span>축제 캘린더에서 전체 일정 보기</span>
-
-          <span class="transition-transform duration-200 group-hover:translate-x-1"> → </span>
-        </button>
-      </div>
-    </div>
-
-    <!-- ================================================================ -->
     <!-- 어디로 탭 -->
     <!-- ================================================================ -->
     <div v-show="activeSubTab === 'where'" class="space-y-6">
-      <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <!-- 볼거리 많은 구 선택기 -->
-        <article class="rounded-2xl border border-gray-800 bg-gray-950/80 p-6">
-          <h4 class="mb-1 text-lg font-semibold text-white">볼거리 많은 구 TOP 5</h4>
+      <!-- 1. 볼거리 많은 구 선택기 -->
+      <article class="rounded-2xl border border-gray-800 bg-gray-950/80 p-6">
+        <h4 class="mb-1 text-lg font-semibold text-white">볼거리 많은 구 TOP 5</h4>
 
-          <p class="mb-4 text-xs leading-5 text-gray-500">
-            관광지·축제·여행코스 등록 건수를 기준으로 보여드립니다. 구를 선택하면 아래 여행 정보가
-            바뀝니다.
-          </p>
+        <p class="mb-4 text-xs leading-5 text-gray-500">
+          관광지·축제·여행코스 등록 건수를 기준으로 보여드립니다. 구를 선택하면 아래 여행 정보가
+          바뀝니다.
+        </p>
 
-          <div class="space-y-3">
-            <button
-              v-for="(item, index) in districtRanking"
-              :key="item.name"
-              type="button"
-              class="flex w-full items-center gap-3 rounded-xl border p-3 text-left transition"
+        <div class="grid grid-cols-1 gap-3 xl:grid-cols-2">
+          <button
+            v-for="(item, index) in districtRanking"
+            :key="item.name"
+            type="button"
+            class="flex w-full items-center gap-3 rounded-xl border p-3 text-left transition"
+            :class="
+              selectedDistrictName === item.name
+                ? 'border-pink-500/70 bg-pink-500/10 ring-1 ring-pink-500/30'
+                : 'border-gray-800 bg-gray-900/40 hover:border-gray-700 hover:bg-gray-900/80'
+            "
+            :aria-pressed="selectedDistrictName === item.name"
+            @click="selectDistrict(item.name)"
+          >
+            <span
+              class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold"
               :class="
                 selectedDistrictName === item.name
-                  ? 'border-pink-500/70 bg-pink-500/10 ring-1 ring-pink-500/30'
-                  : 'border-gray-800 bg-gray-900/40 hover:border-gray-700 hover:bg-gray-900/80'
+                  ? 'bg-pink-500 text-white'
+                  : 'bg-gray-800 text-gray-400'
               "
-              :aria-pressed="selectedDistrictName === item.name"
-              @click="selectDistrict(item.name)"
             >
-              <span
-                class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                :class="
-                  selectedDistrictName === item.name
-                    ? 'bg-pink-500 text-white'
-                    : 'bg-gray-800 text-gray-400'
-                "
-              >
-                {{ index + 1 }}
-              </span>
+              {{ index + 1 }}
+            </span>
 
-              <img
-                v-if="item.image"
-                :src="item.image"
-                :alt="item.name"
-                class="h-12 w-12 flex-shrink-0 rounded-lg object-cover"
-              />
+            <img
+              v-if="item.image"
+              :src="item.image"
+              :alt="item.name"
+              class="h-12 w-12 flex-shrink-0 rounded-lg object-cover"
+            />
 
-              <div v-else class="h-12 w-12 flex-shrink-0 rounded-lg bg-gray-800"></div>
+            <div v-else class="h-12 w-12 flex-shrink-0 rounded-lg bg-gray-800"></div>
 
-              <div class="min-w-0 flex-1 space-y-1">
-                <div class="flex items-center justify-between gap-3 text-sm">
-                  <span
-                    class="font-medium"
-                    :class="selectedDistrictName === item.name ? 'text-pink-300' : 'text-gray-300'"
-                  >
-                    {{ item.name }}
-                  </span>
-
-                  <span class="font-semibold text-white"> {{ item.contentScore }}건 </span>
-                </div>
-
-                <div class="h-2 w-full rounded-full bg-gray-800">
-                  <div
-                    class="h-2 rounded-full bg-gradient-to-r from-pink-600 to-pink-400"
-                    :style="{
-                      width: `${(item.contentScore / maxContentScore) * 100}%`,
-                    }"
-                  ></div>
-                </div>
-              </div>
-            </button>
-          </div>
-        </article>
-
-        <!-- 전체 서울 기준 숙박 격차 -->
-        <article class="rounded-2xl border border-gray-800 bg-gray-950/80 p-6">
-          <h4 class="mb-1 text-lg font-semibold text-white">숙소는 여유 있게 알아보세요</h4>
-
-          <p class="mb-4 text-xs leading-5 text-gray-500">
-            서울 전체 데이터에서 볼거리에 비해 숙소 등록 건수가 상대적으로 적은 구예요.
-          </p>
-
-          <div class="space-y-3">
-            <div
-              v-for="item in supplyGap"
-              :key="item.name"
-              class="rounded-xl border border-gray-800 bg-gray-900/70 px-3 py-3"
-            >
+            <div class="min-w-0 flex-1 space-y-1">
               <div class="flex items-center justify-between gap-3 text-sm">
-                <span class="text-gray-300">
+                <span
+                  class="font-medium"
+                  :class="selectedDistrictName === item.name ? 'text-pink-300' : 'text-gray-300'"
+                >
                   {{ item.name }}
                 </span>
 
-                <span class="text-right font-semibold text-purple-300">
-                  볼거리 {{ item.contentScore }}건 · 숙소 {{ item.lodgingCount }}건
-                </span>
+                <span class="font-semibold text-white"> {{ item.contentScore }}건 </span>
+              </div>
+
+              <div class="h-2 w-full rounded-full bg-gray-800">
+                <div
+                  class="h-2 rounded-full bg-gradient-to-r from-pink-600 to-pink-400"
+                  :style="{
+                    width: `${(item.contentScore / maxContentScore) * 100}%`,
+                  }"
+                ></div>
               </div>
             </div>
+          </button>
+        </div>
+      </article>
 
-            <p v-if="supplyGap.length === 0" class="text-sm text-gray-500">
-              숙소가 부족해 보이는 지역은 없어요.
-            </p>
-          </div>
-        </article>
-      </div>
-
-      <!-- 선택 구 상세 정보 -->
+      <!-- 2. 선택 구 상세 정보 -->
       <article
         v-if="selectedDistrictDetail"
         class="space-y-6 rounded-2xl border border-pink-500/30 bg-gray-950/80 p-6"
@@ -605,45 +478,79 @@ const donutDashoffset = computed(() => donutCircumference * (1 - freeFestivalRat
         </div>
       </article>
 
-      <!-- 전체 서울 기준 코스 공백 -->
-      <article class="rounded-2xl border border-gray-800 bg-gray-950/80 p-6">
-        <h4 class="mb-1 text-lg font-semibold text-white">숨은 명소, 나만의 코스 만들기</h4>
+      <!-- 3. 서울 전체 기준 보조 분석 -->
+      <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <!-- 전체 서울 기준 숙박 격차 -->
+        <article class="rounded-2xl border border-gray-800 bg-gray-950/80 p-6">
+          <h4 class="mb-1 text-lg font-semibold text-white">숙소는 여유 있게 알아보세요</h4>
 
-        <p class="mb-4 text-xs leading-5 text-gray-500">
-          서울 전체 데이터에서 정해진 코스는 없지만 관광지가 많은 구예요.
-        </p>
-
-        <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-          <div
-            v-for="item in courseGap"
-            :key="item.name"
-            class="flex items-center gap-3 rounded-xl border border-gray-800 bg-gray-900/70 p-3"
-          >
-            <img
-              v-if="item.image"
-              :src="item.image"
-              :alt="item.name"
-              class="h-12 w-12 flex-shrink-0 rounded-lg object-cover"
-            />
-
-            <div v-else class="h-12 w-12 flex-shrink-0 rounded-lg bg-gray-800"></div>
-
-            <div class="min-w-0 flex-1">
-              <p class="text-sm font-medium text-gray-300">
-                {{ item.name }}
-              </p>
-
-              <p class="text-xs font-semibold text-cyan-300">
-                관광지 {{ item.attractionCount }}건 · 코스 0건
-              </p>
-            </div>
-          </div>
-
-          <p v-if="courseGap.length === 0" class="text-sm text-gray-500">
-            모든 구에 여행 코스가 준비되어 있어요.
+          <p class="mb-4 text-xs leading-5 text-gray-500">
+            서울 전체 데이터에서 볼거리에 비해 숙소 등록 건수가 상대적으로 적은 구예요.
           </p>
-        </div>
-      </article>
+
+          <div class="space-y-3">
+            <div
+              v-for="item in supplyGap"
+              :key="item.name"
+              class="rounded-xl border border-gray-800 bg-gray-900/70 px-3 py-3"
+            >
+              <div class="flex items-center justify-between gap-3 text-sm">
+                <span class="text-gray-300">
+                  {{ item.name }}
+                </span>
+
+                <span class="text-right font-semibold text-purple-300">
+                  볼거리 {{ item.contentScore }}건 · 숙소 {{ item.lodgingCount }}건
+                </span>
+              </div>
+            </div>
+
+            <p v-if="supplyGap.length === 0" class="text-sm text-gray-500">
+              숙소가 부족해 보이는 지역은 없어요.
+            </p>
+          </div>
+        </article>
+
+        <!-- 전체 서울 기준 코스 공백 -->
+        <article class="rounded-2xl border border-gray-800 bg-gray-950/80 p-6">
+          <h4 class="mb-1 text-lg font-semibold text-white">숨은 명소, 나만의 코스 만들기</h4>
+
+          <p class="mb-4 text-xs leading-5 text-gray-500">
+            서울 전체 데이터에서 정해진 코스는 없지만 관광지가 많은 구예요.
+          </p>
+
+          <div class="space-y-3">
+            <div
+              v-for="item in courseGap"
+              :key="item.name"
+              class="flex items-center gap-3 rounded-xl border border-gray-800 bg-gray-900/70 p-3"
+            >
+              <img
+                v-if="item.image"
+                :src="item.image"
+                :alt="item.name"
+                class="h-12 w-12 flex-shrink-0 rounded-lg object-cover"
+              />
+
+              <div v-else class="h-12 w-12 flex-shrink-0 rounded-lg bg-gray-800"></div>
+
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-gray-300">
+                  {{ item.name }}
+                </p>
+
+                <p class="text-xs font-semibold text-cyan-300">
+                  관광지 {{ item.attractionCount }}건 · 코스 0건
+                </p>
+              </div>
+            </div>
+
+            <p v-if="courseGap.length === 0" class="text-sm text-gray-500">
+              모든 구에 여행 코스가 준비되어 있어요.
+            </p>
+          </div>
+        </article>
+      </div>
     </div>
 
     <!-- ================================================================ -->
@@ -783,6 +690,100 @@ const donutDashoffset = computed(() => donutCircumference * (1 - freeFestivalRat
           </div>
         </div>
       </article>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- 최신 소식 탭 -->
+    <!-- ================================================================ -->
+    <div v-show="activeSubTab === 'news'" class="space-y-6">
+      <!-- 진행 중인 축제 -->
+      <article class="rounded-2xl border border-gray-800 bg-gray-950/80 p-6">
+        <div class="mb-4 flex items-center gap-2">
+          <span class="relative flex h-2.5 w-2.5">
+            <span
+              class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"
+            ></span>
+
+            <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+          </span>
+
+          <h4 class="text-lg font-semibold text-white">
+            지금 진행 중인 축제 {{ ongoingFestivalCount }}건
+          </h4>
+        </div>
+
+        <div class="space-y-2">
+          <div
+            v-for="item in ongoingFestivals"
+            :key="`${item.title}-${item.eventenddate}`"
+            class="flex items-center justify-between rounded-xl border border-gray-800 bg-gray-900/70 px-3 py-3"
+          >
+            <div class="min-w-0">
+              <p class="truncate text-sm text-gray-200">
+                {{ item.title }}
+              </p>
+
+              <p v-if="item.eventplace" class="truncate text-xs text-gray-500">
+                {{ item.eventplace }}
+              </p>
+            </div>
+
+            <span class="ml-3 whitespace-nowrap text-xs text-emerald-400">
+              ~{{ item.eventenddate.slice(4, 6) }}/{{ item.eventenddate.slice(6, 8) }}까지
+            </span>
+          </div>
+
+          <p v-if="ongoingFestivalCount === 0" class="text-sm text-gray-500">
+            지금 진행 중인 축제는 없어요.
+          </p>
+        </div>
+      </article>
+
+      <!-- 다가오는 축제 -->
+      <article class="rounded-2xl border border-gray-800 bg-gray-950/80 p-6">
+        <h4 class="mb-4 text-lg font-semibold text-white">다가오는 축제</h4>
+
+        <div class="space-y-3">
+          <div
+            v-for="item in upcomingFestivals"
+            :key="`${item.title}-${item.dDay}`"
+            class="flex items-center justify-between rounded-xl border border-gray-800 bg-gray-900/70 px-3 py-3"
+          >
+            <div class="min-w-0">
+              <p class="truncate text-sm text-gray-200">
+                {{ item.title }}
+              </p>
+
+              <p v-if="item.eventplace" class="truncate text-xs text-gray-500">
+                {{ item.eventplace }}
+              </p>
+            </div>
+
+            <span
+              class="ml-2 flex-shrink-0 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-xs font-semibold text-amber-400"
+            >
+              D-{{ item.dDay }}
+            </span>
+          </div>
+
+          <p v-if="upcomingFestivals.length === 0" class="text-sm text-gray-500">
+            예정된 축제 정보가 없어요.
+          </p>
+        </div>
+      </article>
+
+      <!-- 축제 캘린더 이동 -->
+      <div class="flex justify-center border-t border-gray-800 pt-6">
+        <button
+          type="button"
+          class="group flex w-full items-center justify-center gap-2 rounded-xl border border-pink-500/40 bg-pink-500/10 px-5 py-3 text-sm font-semibold text-pink-300 transition duration-200 hover:-translate-y-0.5 hover:border-pink-400 hover:bg-pink-500/20 hover:text-pink-200 hover:shadow-[0_0_24px_rgba(236,72,153,0.16)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500/70 sm:w-auto"
+          @click="goToFestivalCalendar"
+        >
+          <span> 축제 캘린더에서 전체 일정 보기 </span>
+
+          <span class="transition-transform duration-200 group-hover:translate-x-1"> → </span>
+        </button>
+      </div>
     </div>
   </section>
 </template>
