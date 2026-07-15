@@ -78,17 +78,6 @@ function handleMapFestivalSelect(contentId) {
 
 <template>
   <div class="festival-dashboard">
-    <div class="dashboard-header">
-      <div>
-        <p class="subtitle">서울 축제 캘린더</p>
-        <h1 class="neon-title">축제 일정 & 지도</h1>
-      </div>
-      <div class="dashboard-meta">
-        <span class="month-label">{{ currentMonthLabel }}</span>
-        <strong class="festival-count">{{ displayedFestivals.length }}개 축제 표시</strong>
-      </div>
-    </div>
-
     <!-- 좌측 캘린더 + 우측 지도 -->
     <div class="grid-top">
       <CalendarPanel 
@@ -114,65 +103,6 @@ function handleMapFestivalSelect(contentId) {
 <style scoped>
 .festival-dashboard {
   /* 탭 안에 끼워지는 컴포넌트라, 페이지 전체를 덮는 배경/높이는 부모(App.vue)가 담당 */
-}
-
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: center;
-  margin-bottom: 32px;
-  padding: 24px;
-  background: rgba(15, 23, 42, 0.4);
-  border: 1px solid rgba(255, 0, 127, 0.2);
-  border-radius: 16px;
-  box-shadow: 0 0 30px rgba(255, 0, 127, 0.1);
-  backdrop-filter: blur(10px);
-}
-
-.subtitle {
-  margin: 0;
-  color: #f472b6;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  font-size: 0.85rem;
-  text-shadow: 0 0 8px rgba(255, 0, 127, 0.3);
-}
-
-.neon-title {
-  margin: 8px 0 0;
-  font-size: 2.2rem;
-  color: #f3f4f6;
-  font-weight: 800;
-  background: linear-gradient(135deg, #ff007f, #7b2cbf);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 0 20px rgba(255, 0, 127, 0.3);
-  font-family: 'Orbitron', sans-serif;
-}
-
-.dashboard-meta {
-  text-align: right;
-  color: #d1d5db;
-}
-
-.month-label {
-  display: block;
-  font-size: 0.9rem;
-  color: #9ca3af;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.festival-count {
-  display: block;
-  margin-top: 8px;
-  font-size: 1.3rem;
-  color: #f472b6;
-  text-shadow: 0 0 10px rgba(255, 0, 127, 0.4);
 }
 
 .grid-top {
