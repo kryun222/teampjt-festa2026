@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import FestivalDashboard from '@/views/FestivalDashboard.vue'
 
 const activeTab = ref('main')
 
@@ -255,107 +256,8 @@ function switchTab(tabId) {
       <!-- ================================================== -->
       <!-- 2. 축제 캘린더 탭 -->
       <!-- ================================================== -->
-      <section v-show="activeTab === 'calendar'" class="space-y-6">
-        <div class="bg-gray-900/50 p-6 rounded-2xl border border-gray-800">
-          <div
-            class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
-          >
-            <div>
-              <h2 class="text-2xl font-bold neon-text text-white">축제 캘린더 스케줄러</h2>
-
-              <p class="text-gray-400 text-sm mt-2">
-                2026년 서울에서 진행되는 주요 축제 일정을 확인하세요.
-              </p>
-            </div>
-
-            <!-- 현재는 디자인만 존재 -->
-            <select
-              class="w-full sm:w-auto bg-gray-800 text-white px-4 py-2.5 rounded-xl border border-gray-700 outline-none"
-            >
-              <option>전체 일정 목록 보기</option>
-              <option>2026년 4월</option>
-              <option>2026년 5월</option>
-              <option>2026년 6월</option>
-            </select>
-          </div>
-
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- 축제 목록 -->
-            <div class="lg:col-span-2 space-y-4">
-              <article
-                class="bg-gray-950 border border-gray-800 p-4 rounded-xl flex flex-col md:flex-row gap-4 items-start md:items-center justify-between"
-              >
-                <div class="flex items-center gap-4">
-                  <img
-                    src="https://tong.visitkorea.or.kr/cms/resource/03/4073903_image2_1.jpg"
-                    alt="덕수궁 밤의 석조전"
-                    class="w-16 h-16 rounded-lg object-cover border border-gray-800"
-                  />
-
-                  <div>
-                    <span class="text-xs text-pink-400 font-mono font-bold"> [2026-06-12] </span>
-
-                    <h3 class="text-base font-extrabold text-white mt-1">덕수궁 밤의 석조전</h3>
-
-                    <p class="text-xs text-gray-400 mt-1">서울특별시 중구 세종대로 99</p>
-                  </div>
-                </div>
-
-                <span class="text-xs text-gray-400"> 1522-2295 </span>
-              </article>
-
-              <article
-                class="bg-gray-950 border border-gray-800 p-4 rounded-xl flex flex-col md:flex-row gap-4 items-start md:items-center justify-between"
-              >
-                <div class="flex items-center gap-4">
-                  <img
-                    src="https://tong.visitkorea.or.kr/cms/resource/00/4074600_image2_1.jpg"
-                    alt="초안산 수국축제"
-                    class="w-16 h-16 rounded-lg object-cover border border-gray-800"
-                  />
-
-                  <div>
-                    <span class="text-xs text-pink-400 font-mono font-bold"> [2026-06-12] </span>
-
-                    <h3 class="text-base font-extrabold text-white mt-1">초안산 수국축제</h3>
-
-                    <p class="text-xs text-gray-400 mt-1">서울특별시 노원구 월계동 산46-3</p>
-                  </div>
-                </div>
-
-                <span class="text-xs text-gray-400"> 02-2116-7142 </span>
-              </article>
-            </div>
-
-            <!-- 안내 영역 -->
-            <aside class="bg-gray-950 p-6 rounded-xl border border-gray-800 h-fit space-y-4">
-              <h3 class="text-lg font-bold text-pink-400">💡 축제 상식 팁</h3>
-
-              <p class="text-gray-400 text-sm leading-relaxed">
-                야간 전통 축제는 사전 예약제로 운영될 수 있으므로 방문 전에 일정과 문의처를
-                확인하세요.
-              </p>
-
-              <div class="p-4 bg-gray-900 rounded-lg border border-gray-800">
-                <span class="text-xs text-gray-500"> 이달의 추천 태그 </span>
-
-                <div class="flex flex-wrap gap-1.5 mt-2">
-                  <span class="text-xs bg-pink-500/10 text-pink-400 px-2.5 py-1 rounded">
-                    #전통행사
-                  </span>
-
-                  <span class="text-xs bg-purple-500/10 text-purple-400 px-2.5 py-1 rounded">
-                    #예술제
-                  </span>
-
-                  <span class="text-xs bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded">
-                    #나이트워크
-                  </span>
-                </div>
-              </div>
-            </aside>
-          </div>
-        </div>
+      <section v-show="activeTab === 'calendar'">
+        <FestivalDashboard />
       </section>
 
       <!-- ================================================== -->
