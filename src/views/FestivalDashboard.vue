@@ -113,10 +113,7 @@ function handleMapFestivalSelect(contentId) {
 
 <style scoped>
 .festival-dashboard {
-  padding: 24px;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #0b0f19 0%, #1a1f35 50%, #0b0f19 100%);
-  background-attachment: fixed;
+  /* 탭 안에 끼워지는 컴포넌트라, 페이지 전체를 덮는 배경/높이는 부모(App.vue)가 담당 */
 }
 
 .dashboard-header {
