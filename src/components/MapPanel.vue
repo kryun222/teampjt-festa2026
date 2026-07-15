@@ -880,7 +880,12 @@ defineExpose({
 
 @media (max-width: 640px) {
   .map-panel {
+    min-height: auto;
     padding: 16px;
+  }
+
+  .map-container {
+    min-height: 380px;
   }
 
   .quick-info {

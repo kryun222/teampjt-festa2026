@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 const props = defineProps({
   month: { type: Date, required: true },
@@ -120,6 +120,45 @@ function onFestivalClick(festival) {
   emit('festival-click', festival)
 }
 
+// ============================================================================
+// 모바일에는 hover가 없어서, 날짜를 탭하면 그날의 전체 일정을 팝오버로 보여줍니다.
+// ============================================================================
+const calendarPanelRef = ref(null)
+
+const activeDayKey = ref(null)
+
+function toggleDayPopover(day) {
+  if (!day.dateKey || !festivalsByDate.value[day.dateKey]?.length) {
+    activeDayKey.value = null
+    return
+  }
+
+  activeDayKey.value = activeDayKey.value === day.dateKey ? null : day.dateKey
+}
+
+function selectPopoverFestival(festival) {
+  activeDayKey.value = null
+  onFestivalClick(festival)
+}
+
+function closeDayPopover() {
+  activeDayKey.value = null
+}
+
+function handleOutsideClick(event) {
+  if (calendarPanelRef.value && !calendarPanelRef.value.contains(event.target)) {
+    closeDayPopover()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleOutsideClick)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleOutsideClick)
+})
+
 const monthYear = computed(() =>
   props.month.toLocaleDateString('ko-KR', {
     year: 'numeric',
@@ -134,11 +173,11 @@ const typeIcon = { start: '▶', end: '■', single: '' }
 </script>
 
 <template>
-  <div class="calendar-panel">
+  <div class="calendar-panel" ref="calendarPanelRef">
     <div class="calendar-header">
       <div>
         <h3 class="neon-text">{{ monthYear }}</h3>
-        <p>월별 축제 일정을 확인하세요 (▶ 시작일 · ■ 종료일)</p>
+        <p>월별 축제 일정을 확인하세요 (▶ 시작일 · ■ 종료일 · 날짜를 탭하면 전체 일정이 보여요)</p>
       </div>
       <div class="calendar-actions">
         <button @click="prevMonth" class="neon-btn">◀ 이전</button>
@@ -160,7 +199,9 @@ const typeIcon = { start: '▶', end: '■', single: '' }
         :class="{
           inactive: !day.isCurrentMonth,
           'has-festival': day.dateKey && festivalsByDate[day.dateKey]?.length > 0,
+          'is-active': day.dateKey && activeDayKey === day.dateKey,
         }"
+        @click.stop="toggleDayPopover(day)"
       >
         <div class="day-number">{{ day.date }}</div>
         <div class="day-festivals">
@@ -172,7 +213,7 @@ const typeIcon = { start: '▶', end: '■', single: '' }
             class="festival-badge"
             :class="`badge-${entry.type}`"
             :title="entry.festival.title"
-            @click="onFestivalClick(entry.festival)"
+            @click.stop="onFestivalClick(entry.festival)"
           >
             <span v-if="typeIcon[entry.type]" class="badge-icon">{{ typeIcon[entry.type] }}</span>
             {{ entry.festival.title.slice(0, 9) }}
@@ -183,6 +224,33 @@ const typeIcon = { start: '▶', end: '■', single: '' }
           >
             +{{ (festivalsByDate[day.dateKey] || []).length - 2 }}
           </div>
+        </div>
+
+        <!-- 탭하면 뜨는 전체 일정 팝오버 (모바일에서 텍스트가 안 보일 때 대체 수단) -->
+        <div v-if="day.dateKey && activeDayKey === day.dateKey" class="day-popover" @click.stop>
+          <div class="day-popover-header">
+            <span>{{ day.fullDate.getMonth() + 1 }}월 {{ day.date }}일</span>
+            <button
+              type="button"
+              class="day-popover-close"
+              aria-label="닫기"
+              @click="closeDayPopover"
+            >
+              ×
+            </button>
+          </div>
+
+          <button
+            v-for="(entry, i) in festivalsByDate[day.dateKey] || []"
+            :key="entry.festival.contentid || i"
+            type="button"
+            class="day-popover-item"
+            :class="`badge-${entry.type}`"
+            @click="selectPopoverFestival(entry.festival)"
+          >
+            <span v-if="typeIcon[entry.type]" class="badge-icon">{{ typeIcon[entry.type] }}</span>
+            {{ entry.festival.title }}
+          </button>
         </div>
       </div>
     </div>
@@ -204,8 +272,10 @@ const typeIcon = { start: '▶', end: '■', single: '' }
 
 .calendar-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   margin-bottom: 24px;
   padding-bottom: 16px;
   border-bottom: 1px solid rgba(255, 0, 127, 0.2);
@@ -285,6 +355,7 @@ const typeIcon = { start: '▶', end: '■', single: '' }
 .calendar-day {
   aspect-ratio: 1;
   min-width: 0;
+  position: relative;
   border: 1px solid rgba(255, 0, 127, 0.2);
   border-radius: 10px;
   padding: 8px;
@@ -305,6 +376,109 @@ const typeIcon = { start: '▶', end: '■', single: '' }
 .calendar-day.has-festival {
   border-color: rgba(255, 0, 127, 0.6);
   background: rgba(255, 0, 127, 0.05);
+}
+
+.calendar-day.is-active {
+  overflow: visible;
+  z-index: 20;
+  border-color: #ff007f;
+  box-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
+}
+
+.day-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  min-width: 160px;
+  max-width: 240px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 10px;
+  background: #10192e;
+  border: 1px solid rgba(255, 0, 127, 0.5);
+  border-radius: 12px;
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.6),
+    0 0 15px rgba(255, 0, 127, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: default;
+  white-space: normal;
+}
+
+.day-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 0, 127, 0.2);
+  color: #f472b6;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.day-popover-close {
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.day-popover-close:hover {
+  color: #fff;
+}
+
+.day-popover-item {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  border-left: 3px solid #ff007f;
+  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(255, 0, 127, 0.25), rgba(123, 44, 191, 0.25));
+  color: #f472b6;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.day-popover-item.badge-start {
+  border-left-color: #34d399;
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.25), rgba(123, 44, 191, 0.25));
+  color: #6ee7b7;
+}
+
+.day-popover-item.badge-end {
+  border-left-color: #f87171;
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.25), rgba(123, 44, 191, 0.25));
+  color: #fca5a5;
+}
+
+.day-popover-item:hover {
+  background: linear-gradient(135deg, rgba(255, 0, 127, 0.8), rgba(123, 44, 191, 0.8));
+  color: #fff;
+}
+
+/* 맨 왼쪽/오른쪽 열은 팝오버가 화면 밖으로 잘리지 않도록 정렬을 바꿉니다 */
+.calendar-day:nth-child(7n + 1) .day-popover {
+  left: 0;
+  transform: none;
+}
+
+.calendar-day:nth-child(7n) .day-popover {
+  left: auto;
+  right: 0;
+  transform: none;
 }
 
 .calendar-day.inactive {
@@ -407,5 +581,69 @@ const typeIcon = { start: '▶', end: '■', single: '' }
 
 .day-festivals::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 0, 127, 0.7);
+}
+
+@media (max-width: 640px) {
+  .calendar-panel {
+    padding: 14px;
+  }
+
+  .calendar-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .calendar-header h3 {
+    font-size: 1.15rem;
+  }
+
+  .calendar-header p {
+    font-size: 0.78rem;
+  }
+
+  .calendar-actions {
+    width: 100%;
+  }
+
+  .neon-btn {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 0.85rem;
+  }
+
+  .weekdays,
+  .calendar-grid {
+    gap: 4px;
+  }
+
+  .weekday {
+    padding: 6px 2px;
+    font-size: 0.72rem;
+  }
+
+  .calendar-day {
+    padding: 4px;
+    border-radius: 8px;
+  }
+
+  .day-number {
+    font-size: 0.72rem;
+    margin-bottom: 3px;
+  }
+
+  .day-festivals {
+    font-size: 0.65rem;
+    gap: 2px;
+  }
+
+  .festival-badge {
+    padding: 2px 3px;
+    border-left-width: 2px;
+    font-weight: 600;
+  }
+
+  .festival-more {
+    font-size: 0.6rem;
+  }
 }
 </style>

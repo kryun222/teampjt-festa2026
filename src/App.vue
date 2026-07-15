@@ -8,6 +8,7 @@ import ChatWidget from '@/components/ChatWidget.vue'
 import festivalData from '@/data/서울_축제공연행사.json'
 
 const activeTab = ref('main')
+const mobileMenuOpen = ref(false)
 const festivalDashboardRef = ref(null)
 const festivals = festivalData.items || []
 
@@ -68,6 +69,7 @@ const tabs = [
 
 function switchTab(tabId) {
   activeTab.value = tabId
+  mobileMenuOpen.value = false
 
   window.scrollTo({
     top: 0,
@@ -314,9 +316,7 @@ function cancelEditComment(post) {
   <div class="min-h-screen flex flex-col bg-[#0b0f19] text-gray-100">
     <!-- ==================== Header ==================== -->
     <header class="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/90 backdrop-blur">
-      <div
-        class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap justify-between items-center gap-4"
-      >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center gap-4">
         <!-- Logo -->
         <button
           type="button"
@@ -326,8 +326,8 @@ function cancelEditComment(post) {
           FESTA 2026
         </button>
 
-        <!-- Navigation -->
-        <nav class="flex flex-wrap gap-1 sm:gap-4">
+        <!-- Navigation (데스크톱) -->
+        <nav class="hidden md:flex flex-wrap gap-1 sm:gap-4">
           <button
             v-for="tab in tabs"
             :key="tab.id"
@@ -343,7 +343,60 @@ function cancelEditComment(post) {
             {{ tab.label }}
           </button>
         </nav>
+
+        <!-- 햄버거 버튼 (모바일) -->
+        <button
+          type="button"
+          class="md:hidden p-2 -mr-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-800 transition"
+          :aria-expanded="mobileMenuOpen"
+          aria-label="메뉴 열기"
+          @click="mobileMenuOpen = !mobileMenuOpen"
+        >
+          <svg
+            v-if="!mobileMenuOpen"
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-6 h-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <svg
+            v-else
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-6 h-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
+
+      <!-- Navigation (모바일 드롭다운) -->
+      <nav
+        v-if="mobileMenuOpen"
+        class="md:hidden border-t border-gray-800 bg-gray-950/95 px-4 py-2 flex flex-col"
+      >
+        <button
+          v-for="tab in tabs"
+          :key="tab.id"
+          type="button"
+          class="text-left px-3 py-3 rounded-lg transition"
+          :class="
+            activeTab === tab.id
+              ? 'text-pink-500 font-bold bg-pink-500/10'
+              : 'text-gray-400 hover:text-white hover:bg-gray-800'
+          "
+          @click="switchTab(tab.id)"
+        >
+          {{ tab.label }}
+        </button>
+      </nav>
     </header>
 
     <!-- ==================== Main ==================== -->
@@ -599,16 +652,18 @@ function cancelEditComment(post) {
                   :key="post.id"
                   class="bg-gray-950 p-5 rounded-xl border border-gray-800 space-y-3 mb-4"
                 >
-                  <div class="flex justify-between items-start gap-4">
-                    <div>
+                  <div class="flex flex-wrap justify-between items-start gap-3">
+                    <div class="min-w-0">
                       <span class="text-xs text-gray-500 font-mono"
                         >작성자: {{ post.author }} | {{ post.date }}</span
                       >
 
-                      <h3 class="text-base font-bold text-white mt-1">{{ post.title }}</h3>
+                      <h3 class="text-base font-bold text-white mt-1 break-words">
+                        {{ post.title }}
+                      </h3>
                     </div>
 
-                    <div class="flex gap-1.5 items-center">
+                    <div class="flex gap-1.5 items-center flex-wrap">
                       <button
                         type="button"
                         class="text-xs text-yellow-300 bg-gray-800 px-2 py-1 rounded flex items-center gap-1"

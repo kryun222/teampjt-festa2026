@@ -57,23 +57,14 @@ watch(
       </div>
 
       <div ref="messageListRef" class="chat-messages">
-        <p v-if="chat.messages.length === 0" class="chat-empty">
-          궁금한 축제나 장소를 물어보세요!
-        </p>
+        <p v-if="chat.messages.length === 0" class="chat-empty">궁금한 축제나 장소를 물어보세요!</p>
 
-        <div
-          v-for="(msg, idx) in chat.messages"
-          :key="idx"
-          class="chat-row"
-          :class="msg.role"
-        >
+        <div v-for="(msg, idx) in chat.messages" :key="idx" class="chat-row" :class="msg.role">
           <div class="chat-bubble">{{ msg.content }}</div>
         </div>
 
         <div v-if="chat.loading" class="chat-row assistant">
-          <div class="chat-bubble chat-typing">
-            <span></span><span></span><span></span>
-          </div>
+          <div class="chat-bubble chat-typing"><span></span><span></span><span></span></div>
         </div>
 
         <p v-if="chat.error" class="chat-error">{{ chat.error }}</p>
@@ -323,6 +314,7 @@ watch(
 @media (max-width: 480px) {
   .chat-panel {
     width: calc(100vw - 48px);
+    height: min(450px, 65vh);
   }
 }
 </style>
