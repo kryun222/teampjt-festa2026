@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+# 프론트에서 /api/chat 으로 짧게 호출할 수 있도록 리다이렉트
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Vue SPA: 새로고침/직접 접근 시 404 방지 (반드시 위 /api 규칙보다 아래에 있어야 함)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

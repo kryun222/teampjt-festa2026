@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import FestivalDashboard from '@/views/FestivalDashboard.vue'
 
 import AnalyticsDashboard from '@/analytics/components/AnalyticsDashboard.vue'
+import ChatWidget from '@/components/ChatWidget.vue'
 
 const activeTab = ref('main')
 
@@ -679,5 +680,6 @@ function cancelEditComment(post) {
         <p>Source Data: 한국관광공사 국문 관광정보 서비스</p>
       </div>
     </footer>
+    <ChatWidget />
   </div>
 </template>
