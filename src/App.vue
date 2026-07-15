@@ -1,10 +1,11 @@
 <script setup>
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 import FestivalDashboard from '@/views/FestivalDashboard.vue'
 
 import AnalyticsDashboard from '@/analytics/components/AnalyticsDashboard.vue'
 
 const activeTab = ref('main')
+const calendarNavigationRequest = ref(null)
 
 const tabs = [
   {
@@ -34,176 +35,25 @@ function switchTab(tabId) {
   })
 }
 
-// --- Community state and handlers ---
-const posts = ref([
-  {
-    id: 1,
-    author: '서울여행자',
-    title: '올해 축제 중 가장 추천하는 행사는 무엇인가요?',
-    content: '가족과 함께 방문하기 좋은 축제를 추천받고 싶습니다.',
-    password: 'pass123',
-    date: '2026-07-14',
-    likes: 3,
-    liked: false,
-    comments: [
-      { id: 1, author: '관리자', text: '좋은 질문이에요!', date: '2026-07-14', password: 'cpass' },
-    ],
-    showComments: false,
-    newCommentAuthor: '',
-    newCommentText: '',
-    newCommentPassword: '',
-    editingCommentId: null,
-    editingCommentText: '',
-  },
-])
+async function handleDashboardCalendarNavigation(request) {
+  if (!request?.type) return
 
-const form = ref({
-  author: '',
-  password: '',
-  title: '',
-  content: '',
-})
+  // 먼저 캘린더 탭을 표시한 뒤 요청을 전달합니다.
+  // 그래야 숨겨져 있던 카카오 지도의 크기와 중심을
+  // 정상적으로 다시 계산할 수 있습니다.
+  activeTab.value = 'calendar'
 
-const editingId = ref(null)
+  await nextTick()
 
-const pwPrompt = ref({ visible: false, mode: '', post: null, comment: null, input: '' })
-
-function resetForm() {
-  form.value = { author: '', password: '', title: '', content: '' }
-  editingId.value = null
-}
-
-function submitPost() {
-  if (!form.value.author || !form.value.title || !form.value.content || !form.value.password) {
-    alert('모든 필드를 입력하세요.')
-    return
+  calendarNavigationRequest.value = {
+    ...request,
+    requestId: Date.now(),
   }
 
-  if (editingId.value === null) {
-    posts.value.unshift({
-      id: Date.now(),
-      author: form.value.author,
-      title: form.value.title,
-      content: form.value.content,
-      password: form.value.password,
-      date: new Date().toISOString().slice(0, 10),
-    })
-    resetForm()
-    return
-  }
-
-  // apply edit
-  const idx = posts.value.findIndex((p) => p.id === editingId.value)
-  if (idx !== -1) {
-    posts.value[idx].author = form.value.author
-    posts.value[idx].title = form.value.title
-    posts.value[idx].content = form.value.content
-    posts.value[idx].password = form.value.password
-  }
-
-  resetForm()
-}
-
-function onEditClick(post) {
-  pwPrompt.value = { visible: true, mode: 'edit', post, comment: null, input: '' }
-}
-
-function onDeleteClick(post) {
-  pwPrompt.value = { visible: true, mode: 'delete', post, comment: null, input: '' }
-}
-
-function onEditCommentClick(post, comment) {
-  pwPrompt.value = { visible: true, mode: 'editComment', post, comment, input: '' }
-}
-
-function onDeleteCommentClick(post, comment) {
-  pwPrompt.value = { visible: true, mode: 'deleteComment', post, comment, input: '' }
-}
-
-function confirmPw() {
-  const { post, comment, input, mode } = pwPrompt.value
-  if (!post) return hidePwPrompt()
-
-  // determine expected password based on mode
-  const expected = (mode === 'editComment' || mode === 'deleteComment') ? (comment && comment.password) : post.password
-  if (input !== expected) {
-    alert('비밀번호가 일치하지 않습니다.')
-    return
-  }
-
-  if (mode === 'edit') {
-    form.value.author = post.author
-    form.value.password = post.password
-    form.value.title = post.title
-    form.value.content = post.content
-    editingId.value = post.id
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  } else if (mode === 'delete') {
-    if (!confirm('정말 삭제하시겠습니까?')) return
-    posts.value = posts.value.filter((p) => p.id !== post.id)
-  } else if (mode === 'editComment') {
-    if (!comment) return hidePwPrompt()
-    // enable inline edit for the comment
-    post.editingCommentId = comment.id
-    post.editingCommentText = comment.text
-  } else if (mode === 'deleteComment') {
-    if (!comment) return hidePwPrompt()
-    if (!confirm('댓글을 삭제하시겠습니까?')) return
-    post.comments = (post.comments || []).filter((c) => c.id !== comment.id)
-  }
-
-  hidePwPrompt()
-}
-
-function hidePwPrompt() {
-  pwPrompt.value = { visible: false, mode: '', post: null, input: '' }
-}
-
-// Likes and comments
-function toggleLike(post) {
-  post.liked = !post.liked
-  post.likes = post.liked ? (post.likes || 0) + 1 : Math.max(0, (post.likes || 0) - 1)
-}
-
-function toggleComments(post) {
-  post.showComments = !post.showComments
-}
-
-function addComment(post) {
-  const author = (post.newCommentAuthor || '').trim() || '익명'
-  const text = (post.newCommentText || '').trim()
-  const password = (post.newCommentPassword || '').trim()
-  if (!text) {
-    alert('댓글 내용을 입력하세요.')
-    return
-  }
-  if (!password) {
-    alert('댓글 비밀번호를 입력하세요.')
-    return
-  }
-
-  const id = Date.now()
-  post.comments = post.comments || []
-  post.comments.push({ id, author, text, date: new Date().toISOString().slice(0, 10), password })
-  post.newCommentAuthor = ''
-  post.newCommentText = ''
-  post.newCommentPassword = ''
-  post.showComments = true
-}
-
-function saveEditedComment(post) {
-  const id = post.editingCommentId
-  if (!id) return
-  const idx = (post.comments || []).findIndex((c) => c.id === id)
-  if (idx === -1) return
-  post.comments[idx].text = post.editingCommentText || post.comments[idx].text
-  post.editingCommentId = null
-  post.editingCommentText = ''
-}
-
-function cancelEditComment(post) {
-  post.editingCommentId = null
-  post.editingCommentText = ''
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  })
 }
 </script>
 
@@ -320,7 +170,7 @@ function cancelEditComment(post) {
               </div>
 
               <div class="p-5 space-y-3">
-                <span class="text-xs text-pink-400 font-bold">2026-05-06</span>
+                <span class="text-xs text-pink-400 font-bold"> 2026-05-06 </span>
 
                 <h3 class="text-lg font-extrabold text-white">궁중문화축전</h3>
 
@@ -329,7 +179,7 @@ function cancelEditComment(post) {
                 <div
                   class="pt-3 border-t border-gray-800 flex justify-between items-center text-xs"
                 >
-                  <span class="text-gray-500">☎ 1522-2295</span>
+                  <span class="text-gray-500"> ☎ 1522-2295 </span>
 
                   <button
                     type="button"
@@ -361,7 +211,7 @@ function cancelEditComment(post) {
               </div>
 
               <div class="p-5 space-y-3">
-                <span class="text-xs text-pink-400 font-bold">2026-06-12</span>
+                <span class="text-xs text-pink-400 font-bold"> 2026-06-12 </span>
 
                 <h3 class="text-lg font-extrabold text-white">덕수궁 밤의 석조전</h3>
 
@@ -370,7 +220,7 @@ function cancelEditComment(post) {
                 <div
                   class="pt-3 border-t border-gray-800 flex justify-between items-center text-xs"
                 >
-                  <span class="text-gray-500">☎ 1522-2295</span>
+                  <span class="text-gray-500"> ☎ 1522-2295 </span>
 
                   <button
                     type="button"
@@ -402,7 +252,7 @@ function cancelEditComment(post) {
               </div>
 
               <div class="p-5 space-y-3">
-                <span class="text-xs text-pink-400 font-bold">2026-06-12</span>
+                <span class="text-xs text-pink-400 font-bold"> 2026-06-12 </span>
 
                 <h3 class="text-lg font-extrabold text-white">초안산 수국축제</h3>
 
@@ -411,7 +261,7 @@ function cancelEditComment(post) {
                 <div
                   class="pt-3 border-t border-gray-800 flex justify-between items-center text-xs"
                 >
-                  <span class="text-gray-500">☎ 02-2116-7142</span>
+                  <span class="text-gray-500"> ☎ 02-2116-7142 </span>
 
                   <button
                     type="button"
@@ -431,7 +281,7 @@ function cancelEditComment(post) {
       <!-- 2. 축제 캘린더 탭 -->
       <!-- ================================================== -->
       <section v-show="activeTab === 'calendar'">
-        <FestivalDashboard />
+        <FestivalDashboard :navigation-request="calendarNavigationRequest" />
       </section>
 
       <!-- ================================================== -->
@@ -463,10 +313,9 @@ function cancelEditComment(post) {
               <div class="bg-gray-950 p-6 rounded-xl border border-gray-800 space-y-4 mb-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label class="block text-xs text-gray-400 mb-1">작성자</label>
+                    <label class="block text-xs text-gray-400 mb-1"> 작성자 </label>
 
                     <input
-                      v-model="form.author"
                       type="text"
                       placeholder="작성자"
                       class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white outline-none focus:border-pink-500"
@@ -477,7 +326,6 @@ function cancelEditComment(post) {
                     <label class="block text-xs text-gray-400 mb-1"> 수정용 비밀번호 </label>
 
                     <input
-                      v-model="form.password"
                       type="password"
                       placeholder="수정 및 삭제 시 사용"
                       class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white outline-none focus:border-pink-500"
@@ -486,10 +334,9 @@ function cancelEditComment(post) {
                 </div>
 
                 <div>
-                  <label class="block text-xs text-gray-400 mb-1">제목</label>
+                  <label class="block text-xs text-gray-400 mb-1"> 제목 </label>
 
                   <input
-                    v-model="form.title"
                     type="text"
                     placeholder="제목을 입력하세요"
                     class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white outline-none focus:border-pink-500"
@@ -497,10 +344,9 @@ function cancelEditComment(post) {
                 </div>
 
                 <div>
-                  <label class="block text-xs text-gray-400 mb-1">내용</label>
+                  <label class="block text-xs text-gray-400 mb-1"> 내용 </label>
 
                   <textarea
-                    v-model="form.content"
                     rows="4"
                     placeholder="내용을 입력하세요"
                     class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white outline-none resize-y focus:border-pink-500"
@@ -508,100 +354,53 @@ function cancelEditComment(post) {
                 </div>
 
                 <div class="flex justify-end gap-2">
-                  <button type="button" class="bg-gray-800 px-4 py-2 rounded-lg text-sm" @click="resetForm">
+                  <button type="button" class="bg-gray-800 px-4 py-2 rounded-lg text-sm">
                     취소
                   </button>
 
                   <button
                     type="button"
                     class="bg-pink-600 hover:bg-pink-500 px-4 py-2 rounded-lg text-sm font-bold text-white"
-                    @click="submitPost"
                   >
-                    {{ editingId === null ? '등록하기' : '수정완료' }}
+                    등록하기
                   </button>
                 </div>
               </div>
 
-              <!-- 게시글 카드 디자인 -->
-              <template v-if="posts.length">
-                <article v-for="post in posts" :key="post.id" class="bg-gray-950 p-5 rounded-xl border border-gray-800 space-y-3 mb-4">
-                  <div class="flex justify-between items-start gap-4">
-                    <div>
-                      <span class="text-xs text-gray-500 font-mono">작성자: {{ post.author }} | {{ post.date }}</span>
+              <!-- 게시글 카드 -->
+              <article class="bg-gray-950 p-5 rounded-xl border border-gray-800 space-y-3">
+                <div class="flex justify-between items-start gap-4">
+                  <div>
+                    <span class="text-xs text-gray-500 font-mono">
+                      작성자: 서울여행자 | 2026-07-14
+                    </span>
 
-                      <h3 class="text-base font-bold text-white mt-1">{{ post.title }}</h3>
-                    </div>
-
-                    <div class="flex gap-1.5 items-center">
-                      <button type="button" class="text-xs text-yellow-300 bg-gray-800 px-2 py-1 rounded flex items-center gap-1" @click="toggleLike(post)">
-                        <span>{{ post.liked ? '💖' : '🤍' }}</span>
-                        <span class="text-xs">{{ post.likes || 0 }}</span>
-                      </button>
-
-                      <button type="button" class="text-xs text-gray-300 bg-gray-800 px-2 py-1 rounded flex items-center justify-center" @click="toggleComments(post)" :aria-pressed="post.showComments">
-                        <span class="text-sm">{{ post.showComments ? '▴' : '▾' }}</span>
-                      </button>
-
-                      <button type="button" class="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded" @click="onEditClick(post)">수정</button>
-
-                      <button type="button" class="text-xs text-red-400 bg-red-950/20 px-2 py-1 rounded" @click="onDeleteClick(post)">삭제</button>
-                    </div>
+                    <h3 class="text-base font-bold text-white mt-1">
+                      올해 축제 중 가장 추천하는 행사는 무엇인가요?
+                    </h3>
                   </div>
 
-                  <p class="text-sm text-gray-300">{{ post.content }}</p>
+                  <div class="flex gap-1.5">
+                    <button
+                      type="button"
+                      class="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded"
+                    >
+                      수정
+                    </button>
 
-                  <div v-if="post.showComments" class="mt-3 border-t border-gray-800 pt-3 space-y-3">
-                    <div v-if="post.comments && post.comments.length" class="space-y-2">
-                        <div v-for="c in post.comments" :key="c.id" class="text-sm text-gray-300 bg-gray-900 p-2 rounded">
-                          <div class="flex justify-between items-start gap-2">
-                            <div>
-                              <div class="text-xs text-gray-500">{{ c.author }} · {{ c.date }}</div>
-                            </div>
-                            <div class="flex gap-2">
-                              <button class="text-xs text-gray-400 px-2 py-0.5 rounded" @click="onEditCommentClick(post, c)">수정</button>
-                              <button class="text-xs text-red-400 px-2 py-0.5 rounded" @click="onDeleteCommentClick(post, c)">삭제</button>
-                            </div>
-                          </div>
-
-                          <div v-if="post.editingCommentId === c.id" class="mt-2">
-                            <textarea v-model="post.editingCommentText" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-white outline-none mb-2"></textarea>
-                            <div class="flex justify-end gap-2">
-                              <button class="bg-gray-800 px-3 py-1 rounded text-sm" @click="cancelEditComment(post)">취소</button>
-                              <button class="bg-pink-600 px-3 py-1 rounded text-sm text-white" @click="saveEditedComment(post)">저장</button>
-                            </div>
-                          </div>
-
-                          <div v-else class="mt-1">{{ c.text }}</div>
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                      <input v-model="post.newCommentAuthor" placeholder="이름(선택)" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white outline-none" />
-                      <input v-model="post.newCommentPassword" type="password" placeholder="비밀번호(댓글 수정/삭제용)" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white outline-none" />
-                      <textarea v-model="post.newCommentText" rows="2" placeholder="댓글을 입력하세요" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white outline-none"></textarea>
-                      <div class="flex justify-end">
-                        <button class="bg-pink-600 px-3 py-1 rounded text-sm text-white" @click="addComment(post)">댓글 등록</button>
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              </template>
-              <p v-else class="text-sm text-gray-400">등록된 게시글이 없습니다.</p>
-              <!-- 비밀번호 입력 모달 -->
-              <div v-if="pwPrompt.visible" class="fixed inset-0 z-50 flex items-center justify-center">
-                <div class="absolute inset-0 bg-black/60" @click="hidePwPrompt"></div>
-
-                <div class="relative bg-gray-900 p-6 rounded-lg border border-gray-800 w-full max-w-md z-10">
-                  <h4 class="text-lg font-bold mb-2 text-white">비밀번호 입력</h4>
-                  <p class="text-sm text-gray-400 mb-4">이 작업을 진행하려면 비밀번호를 입력하세요.</p>
-
-                  <input v-model="pwPrompt.input" type="password" placeholder="비밀번호" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-white outline-none mb-4" />
-
-                  <div class="flex justify-end gap-2">
-                    <button type="button" class="bg-gray-800 px-3 py-2 rounded text-sm" @click="hidePwPrompt">취소</button>
-                    <button type="button" class="bg-pink-600 px-3 py-2 rounded text-sm text-white" @click="confirmPw">확인</button>
+                    <button
+                      type="button"
+                      class="text-xs text-red-400 bg-red-950/20 px-2 py-1 rounded"
+                    >
+                      삭제
+                    </button>
                   </div>
                 </div>
-              </div>
+
+                <p class="text-sm text-gray-300">
+                  가족과 함께 방문하기 좋은 축제를 추천받고 싶습니다.
+                </p>
+              </article>
             </div>
           </div>
 
@@ -665,7 +464,7 @@ function cancelEditComment(post) {
             </div>
           </div>
 
-          <AnalyticsDashboard />
+          <AnalyticsDashboard @navigate-calendar="handleDashboardCalendarNavigation" />
         </div>
       </section>
     </main>
@@ -676,6 +475,7 @@ function cancelEditComment(post) {
         class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-500"
       >
         <p>© 2026 SEOUL FESTA. All rights reserved.</p>
+
         <p>Source Data: 한국관광공사 국문 관광정보 서비스</p>
       </div>
     </footer>
