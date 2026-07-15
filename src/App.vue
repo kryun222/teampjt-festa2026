@@ -95,74 +95,63 @@ async function handleDashboardCalendarNavigation(request) {
     </header>
 
     <!-- ==================== Main ==================== -->
-    <main
-      class="flex-grow w-full"
-      :class="activeTab === 'main' ? 'px-0 py-0' : 'max-w-7xl mx-auto px-4 py-8'"
-    >
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-8">
       <!-- ================================================== -->
       <!-- 1. 홈 탭 -->
       <!-- ================================================== -->
-      <section v-show="activeTab === 'main'" class="festival-main-stage relative overflow-hidden">
-        <div class="festival-main-stage__wave festival-main-stage__wave--one" aria-hidden="true"></div>
-        <div class="festival-main-stage__wave festival-main-stage__wave--two" aria-hidden="true"></div>
-        <div class="festival-main-stage__spark festival-main-stage__spark--one" aria-hidden="true"></div>
-        <div class="festival-main-stage__spark festival-main-stage__spark--two" aria-hidden="true"></div>
-        <div class="festival-main-stage__spark festival-main-stage__spark--three" aria-hidden="true"></div>
-        <div class="festival-main-stage__spark festival-main-stage__spark--four" aria-hidden="true"></div>
+      <section v-show="activeTab === 'main'" class="space-y-12">
+        <!-- Hero -->
+        <div
+          class="relative h-[420px] rounded-3xl overflow-hidden neon-border flex items-center justify-center text-center p-6 bg-cover bg-center"
+          style="
+            background-image:
+              linear-gradient(to bottom, rgba(11, 15, 25, 0.25), rgba(11, 15, 25, 0.95)),
+              url('https://tong.visitkorea.or.kr/cms/resource/86/4055386_image2_1.jpg');
+          "
+        >
+          <div class="relative z-10 space-y-6">
+            <span
+              class="inline-block px-4 py-1.5 rounded-full bg-pink-500/20 border border-pink-500 text-pink-400 text-sm font-bold tracking-widest"
+            >
+              SEOUL FESTIVAL PORTAL
+            </span>
 
-        <div class="relative z-10 mx-auto max-w-7xl px-4 py-8 space-y-12">
-          <!-- Hero -->
-          <div
-            class="relative h-[420px] rounded-3xl overflow-hidden neon-border flex items-center justify-center text-center p-6 bg-cover bg-center"
-            style="
-              background-image:
-                linear-gradient(to bottom, rgba(11, 15, 25, 0.25), rgba(11, 15, 25, 0.95)),
-                url('https://tong.visitkorea.or.kr/cms/resource/86/4055386_image2_1.jpg');
-            "
-          >
-            <div class="relative z-10 space-y-6">
-              <span
-                class="inline-block px-4 py-1.5 rounded-full bg-pink-500/20 border border-pink-500 text-pink-400 text-sm font-bold tracking-widest"
+            <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight neon-text text-white">
+              서울, 축제의 빛으로 물들다
+            </h1>
+
+            <p class="text-gray-300 max-w-2xl mx-auto text-sm sm:text-base">
+              공공데이터를 기반으로 서울에서 개최되는 축제와 행사를 한눈에 확인해 보세요.
+            </p>
+
+            <div class="flex flex-wrap justify-center gap-4">
+              <button
+                type="button"
+                class="neon-btn px-6 py-3 rounded-xl font-bold text-white shadow-lg"
+                @click="switchTab('calendar')"
               >
-                SEOUL FESTIVAL PORTAL
-              </span>
+                축제 일정 보러가기
+              </button>
 
-              <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight neon-text text-white">
-                서울, 축제의 빛으로 물들다
-              </h1>
-
-              <p class="text-gray-300 max-w-2xl mx-auto text-sm sm:text-base">
-                공공데이터를 기반으로 서울에서 개최되는 축제와 행사를 한눈에 확인해 보세요.
-              </p>
-
-              <div class="flex flex-wrap justify-center gap-4">
-                <button
-                  type="button"
-                  class="neon-btn px-6 py-3 rounded-xl font-bold text-white shadow-lg"
-                  @click="switchTab('calendar')"
-                >
-                  축제 일정 보러가기
-                </button>
-
-                <button
-                  type="button"
-                  class="bg-gray-800/80 border border-gray-700 hover:bg-gray-700 px-6 py-3 rounded-xl font-bold transition"
-                  @click="switchTab('dashboard')"
-                >
-                  통계 분석
-                </button>
-              </div>
+              <button
+                type="button"
+                class="bg-gray-800/80 border border-gray-700 hover:bg-gray-700 px-6 py-3 rounded-xl font-bold transition"
+                @click="switchTab('dashboard')"
+              >
+                통계 분석
+              </button>
             </div>
           </div>
+        </div>
 
-          <!-- 축제 카드 영역 -->
-          <div>
-            <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-              <span class="w-2.5 h-6 bg-pink-500 rounded"></span>
-              지금 뜨고 있는 서울의 주요 축제
-            </h2>
+        <!-- 축제 카드 영역 -->
+        <div>
+          <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+            <span class="w-2.5 h-6 bg-pink-500 rounded"></span>
+            지금 뜨고 있는 서울의 주요 축제
+          </h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- 카드 1 -->
             <article
               class="festival-card bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-lg"
@@ -285,7 +274,6 @@ async function handleDashboardCalendarNavigation(request) {
                 </div>
               </div>
             </article>
-            </div>
           </div>
         </div>
       </section>
@@ -380,40 +368,79 @@ async function handleDashboardCalendarNavigation(request) {
                 </div>
               </div>
 
-              <!-- 게시글 카드 -->
-              <article class="bg-gray-950 p-5 rounded-xl border border-gray-800 space-y-3">
-                <div class="flex justify-between items-start gap-4">
-                  <div>
-                    <span class="text-xs text-gray-500 font-mono">
-                      작성자: 서울여행자 | 2026-07-14
-                    </span>
+              <div class="my-6 border-t border-gray-700/80"></div>
 
-                    <h3 class="text-base font-bold text-white mt-1">
-                      올해 축제 중 가장 추천하는 행사는 무엇인가요?
-                    </h3>
+              <!-- 게시글 카드 디자인 -->
+              <template v-if="posts.length">
+                <article
+                  v-for="post in posts"
+                  :key="post.id"
+                  class="bg-gray-950 p-5 rounded-xl border border-gray-800 space-y-3 mb-4"
+                >
+                  <div class="flex justify-between items-start gap-4">
+                    <div>
+                      <span class="text-xs text-gray-500 font-mono">
+                        작성자: {{ post.author }} | {{ post.date }}
+                      </span>
+
+                      <h3 class="text-base font-bold text-white mt-1">{{ post.title }}</h3>
+                    </div>
+
+                    <div class="flex gap-1.5 items-center">
+                      <button
+                        type="button"
+                        class="text-xs text-yellow-300 bg-gray-800 px-2 py-1 rounded flex items-center gap-1"
+                      >
+                        <span>{{ post.liked ? '💖' : '🤍' }}</span>
+                        <span class="text-xs">{{ post.likes || 0 }}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="text-xs text-gray-300 bg-gray-800 px-2 py-1 rounded flex items-center justify-center"
+                      >
+                        <span class="text-sm">▾</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded"
+                      >
+                        수정
+                      </button>
+
+                      <button
+                        type="button"
+                        class="text-xs text-red-400 bg-red-950/20 px-2 py-1 rounded"
+                      >
+                        삭제
+                      </button>
+                    </div>
                   </div>
 
-                  <div class="flex gap-1.5">
-                    <button
-                      type="button"
-                      class="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded"
-                    >
-                      수정
-                    </button>
+                  <p class="text-sm text-gray-300">{{ post.content }}</p>
+                </article>
+              </template>
 
-                    <button
-                      type="button"
-                      class="text-xs text-red-400 bg-red-950/20 px-2 py-1 rounded"
-                    >
-                      삭제
-                    </button>
+              <p v-else class="text-sm text-gray-400">등록된 게시글이 없습니다.</p>
+
+              <!-- 비밀번호 입력 모달 -->
+              <div v-if="pwPrompt.visible" class="fixed inset-0 z-50 flex items-center justify-center">
+                <div class="absolute inset-0 bg-black/60" @click="hidePwPrompt"></div>
+
+                <div class="relative bg-gray-900 p-6 rounded-lg border border-gray-800 w-full max-w-md z-10">
+                  <h4 class="text-lg font-bold mb-2 text-white">비밀번호 입력</h4>
+                  <p class="text-sm text-gray-400 mb-4">이 작업을 진행하려면 비밀번호를 입력하세요.</p>
+
+                  <input v-model="pwPrompt.input" type="password" placeholder="비밀번호" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-white outline-none mb-4" />
+
+                  <div class="flex justify-end gap-2">
+                    <button type="button" class="bg-gray-800 px-3 py-2 rounded text-sm" @click="hidePwPrompt">취소</button>
+                    <button type="button" class="bg-pink-600 px-3 py-2 rounded text-sm text-white" @click="confirmPw">확인</button>
                   </div>
                 </div>
+              </div>
 
-                <p class="text-sm text-gray-300">
-                  가족과 함께 방문하기 좋은 축제를 추천받고 싶습니다.
-                </p>
-              </article>
             </div>
           </div>
 
