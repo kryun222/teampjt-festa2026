@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue'
 
+import AnalyticsDashboard from '@/analytics/components/AnalyticsDashboard.vue'
+
 const activeTab = ref('main')
 
 const tabs = [
@@ -145,7 +147,7 @@ function switchTab(tabId) {
               </div>
 
               <div class="p-5 space-y-3">
-                <span class="text-xs text-pink-400 font-bold"> 2026-05-06 </span>
+                <span class="text-xs text-pink-400 font-bold">2026-05-06</span>
 
                 <h3 class="text-lg font-extrabold text-white">궁중문화축전</h3>
 
@@ -154,7 +156,7 @@ function switchTab(tabId) {
                 <div
                   class="pt-3 border-t border-gray-800 flex justify-between items-center text-xs"
                 >
-                  <span class="text-gray-500"> ☎ 1522-2295 </span>
+                  <span class="text-gray-500">☎ 1522-2295</span>
 
                   <button
                     type="button"
@@ -186,7 +188,7 @@ function switchTab(tabId) {
               </div>
 
               <div class="p-5 space-y-3">
-                <span class="text-xs text-pink-400 font-bold"> 2026-06-12 </span>
+                <span class="text-xs text-pink-400 font-bold">2026-06-12</span>
 
                 <h3 class="text-lg font-extrabold text-white">덕수궁 밤의 석조전</h3>
 
@@ -195,7 +197,7 @@ function switchTab(tabId) {
                 <div
                   class="pt-3 border-t border-gray-800 flex justify-between items-center text-xs"
                 >
-                  <span class="text-gray-500"> ☎ 1522-2295 </span>
+                  <span class="text-gray-500">☎ 1522-2295</span>
 
                   <button
                     type="button"
@@ -227,7 +229,7 @@ function switchTab(tabId) {
               </div>
 
               <div class="p-5 space-y-3">
-                <span class="text-xs text-pink-400 font-bold"> 2026-06-12 </span>
+                <span class="text-xs text-pink-400 font-bold">2026-06-12</span>
 
                 <h3 class="text-lg font-extrabold text-white">초안산 수국축제</h3>
 
@@ -236,7 +238,7 @@ function switchTab(tabId) {
                 <div
                   class="pt-3 border-t border-gray-800 flex justify-between items-center text-xs"
                 >
-                  <span class="text-gray-500"> ☎ 02-2116-7142 </span>
+                  <span class="text-gray-500">☎ 02-2116-7142</span>
 
                   <button
                     type="button"
@@ -255,107 +257,8 @@ function switchTab(tabId) {
       <!-- ================================================== -->
       <!-- 2. 축제 캘린더 탭 -->
       <!-- ================================================== -->
-      <section v-show="activeTab === 'calendar'" class="space-y-6">
-        <div class="bg-gray-900/50 p-6 rounded-2xl border border-gray-800">
-          <div
-            class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"
-          >
-            <div>
-              <h2 class="text-2xl font-bold neon-text text-white">축제 캘린더 스케줄러</h2>
-
-              <p class="text-gray-400 text-sm mt-2">
-                2026년 서울에서 진행되는 주요 축제 일정을 확인하세요.
-              </p>
-            </div>
-
-            <!-- 현재는 디자인만 존재 -->
-            <select
-              class="w-full sm:w-auto bg-gray-800 text-white px-4 py-2.5 rounded-xl border border-gray-700 outline-none"
-            >
-              <option>전체 일정 목록 보기</option>
-              <option>2026년 4월</option>
-              <option>2026년 5월</option>
-              <option>2026년 6월</option>
-            </select>
-          </div>
-
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- 축제 목록 -->
-            <div class="lg:col-span-2 space-y-4">
-              <article
-                class="bg-gray-950 border border-gray-800 p-4 rounded-xl flex flex-col md:flex-row gap-4 items-start md:items-center justify-between"
-              >
-                <div class="flex items-center gap-4">
-                  <img
-                    src="https://tong.visitkorea.or.kr/cms/resource/03/4073903_image2_1.jpg"
-                    alt="덕수궁 밤의 석조전"
-                    class="w-16 h-16 rounded-lg object-cover border border-gray-800"
-                  />
-
-                  <div>
-                    <span class="text-xs text-pink-400 font-mono font-bold"> [2026-06-12] </span>
-
-                    <h3 class="text-base font-extrabold text-white mt-1">덕수궁 밤의 석조전</h3>
-
-                    <p class="text-xs text-gray-400 mt-1">서울특별시 중구 세종대로 99</p>
-                  </div>
-                </div>
-
-                <span class="text-xs text-gray-400"> 1522-2295 </span>
-              </article>
-
-              <article
-                class="bg-gray-950 border border-gray-800 p-4 rounded-xl flex flex-col md:flex-row gap-4 items-start md:items-center justify-between"
-              >
-                <div class="flex items-center gap-4">
-                  <img
-                    src="https://tong.visitkorea.or.kr/cms/resource/00/4074600_image2_1.jpg"
-                    alt="초안산 수국축제"
-                    class="w-16 h-16 rounded-lg object-cover border border-gray-800"
-                  />
-
-                  <div>
-                    <span class="text-xs text-pink-400 font-mono font-bold"> [2026-06-12] </span>
-
-                    <h3 class="text-base font-extrabold text-white mt-1">초안산 수국축제</h3>
-
-                    <p class="text-xs text-gray-400 mt-1">서울특별시 노원구 월계동 산46-3</p>
-                  </div>
-                </div>
-
-                <span class="text-xs text-gray-400"> 02-2116-7142 </span>
-              </article>
-            </div>
-
-            <!-- 안내 영역 -->
-            <aside class="bg-gray-950 p-6 rounded-xl border border-gray-800 h-fit space-y-4">
-              <h3 class="text-lg font-bold text-pink-400">💡 축제 상식 팁</h3>
-
-              <p class="text-gray-400 text-sm leading-relaxed">
-                야간 전통 축제는 사전 예약제로 운영될 수 있으므로 방문 전에 일정과 문의처를
-                확인하세요.
-              </p>
-
-              <div class="p-4 bg-gray-900 rounded-lg border border-gray-800">
-                <span class="text-xs text-gray-500"> 이달의 추천 태그 </span>
-
-                <div class="flex flex-wrap gap-1.5 mt-2">
-                  <span class="text-xs bg-pink-500/10 text-pink-400 px-2.5 py-1 rounded">
-                    #전통행사
-                  </span>
-
-                  <span class="text-xs bg-purple-500/10 text-purple-400 px-2.5 py-1 rounded">
-                    #예술제
-                  </span>
-
-                  <span class="text-xs bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded">
-                    #나이트워크
-                  </span>
-                </div>
-              </div>
-            </aside>
-          </div>
-        </div>
+      <section v-show="activeTab === 'calendar'">
+        <FestivalDashboard />
       </section>
 
       <!-- ================================================== -->
@@ -375,7 +278,6 @@ function switchTab(tabId) {
                   </p>
                 </div>
 
-                <!-- 현재는 작동하지 않는 디자인 버튼 -->
                 <button
                   type="button"
                   class="neon-btn px-4 py-2 rounded-xl text-sm font-bold text-white"
@@ -384,11 +286,11 @@ function switchTab(tabId) {
                 </button>
               </div>
 
-              <!-- 게시글 입력 폼 디자인 -->
+              <!-- 게시글 입력 폼 -->
               <div class="bg-gray-950 p-6 rounded-xl border border-gray-800 space-y-4 mb-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label class="block text-xs text-gray-400 mb-1"> 작성자 </label>
+                    <label class="block text-xs text-gray-400 mb-1">작성자</label>
 
                     <input
                       type="text"
@@ -409,7 +311,7 @@ function switchTab(tabId) {
                 </div>
 
                 <div>
-                  <label class="block text-xs text-gray-400 mb-1"> 제목 </label>
+                  <label class="block text-xs text-gray-400 mb-1">제목</label>
 
                   <input
                     type="text"
@@ -419,7 +321,7 @@ function switchTab(tabId) {
                 </div>
 
                 <div>
-                  <label class="block text-xs text-gray-400 mb-1"> 내용 </label>
+                  <label class="block text-xs text-gray-400 mb-1">내용</label>
 
                   <textarea
                     rows="4"
@@ -442,7 +344,7 @@ function switchTab(tabId) {
                 </div>
               </div>
 
-              <!-- 게시글 카드 디자인 -->
+              <!-- 게시글 카드 -->
               <article class="bg-gray-950 p-5 rounded-xl border border-gray-800 space-y-3">
                 <div class="flex justify-between items-start gap-4">
                   <div>
@@ -490,7 +392,6 @@ function switchTab(tabId) {
 
             <p class="text-xs text-gray-400 mb-4">찾고 싶은 축제나 장소를 입력해 보세요.</p>
 
-            <!-- 대화창 디자인 -->
             <div
               class="flex-grow overflow-y-auto bg-gray-950 p-4 rounded-xl border border-gray-800 space-y-3 mb-3 text-sm"
             >
@@ -507,7 +408,6 @@ function switchTab(tabId) {
               </div>
             </div>
 
-            <!-- 입력창 디자인 -->
             <div class="flex gap-2">
               <input
                 type="text"
@@ -530,79 +430,18 @@ function switchTab(tabId) {
       <!-- 4. 데이터 분석 탭 -->
       <!-- ================================================== -->
       <section v-show="activeTab === 'dashboard'">
-        <div class="bg-gray-900/50 p-6 rounded-2xl border border-gray-800">
-          <h2 class="text-2xl font-bold text-white mb-2">행사 데이터 분석 대시보드</h2>
+        <div class="rounded-2xl border border-gray-800 bg-gray-900/50 p-6">
+          <div class="mb-6 flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h2 class="mb-2 text-2xl font-bold text-white">서울 데이터 분석 대시보드</h2>
 
-          <p class="text-gray-400 text-sm mb-6">
-            서울시 축제 데이터 분석 결과가 표시될 영역입니다.
-          </p>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- 도넛 차트 디자인 -->
-            <article
-              class="bg-gray-950 p-6 rounded-xl border border-gray-800 flex flex-col items-center"
-            >
-              <h3 class="text-base font-bold text-pink-400 mb-6">행사 분류별 카테고리 비율</h3>
-
-              <div
-                class="w-52 h-52 rounded-full flex items-center justify-center"
-                style="
-                  background: conic-gradient(#ff007f 0% 48%, #7b2cbf 48% 68%, #00b4d8 68% 100%);
-                "
-              >
-                <div
-                  class="w-28 h-28 rounded-full bg-gray-950 flex items-center justify-center text-center"
-                >
-                  <span class="text-sm text-gray-400">
-                    Chart
-                    <br />
-                    Placeholder
-                  </span>
-                </div>
-              </div>
-
-              <div class="flex flex-wrap justify-center gap-4 mt-6 text-xs">
-                <span class="text-pink-400"> ● 문화관광형 </span>
-
-                <span class="text-purple-400"> ● 공연예술형 </span>
-
-                <span class="text-cyan-400"> ● 전시·학술형 </span>
-              </div>
-            </article>
-
-            <!-- 막대 차트 디자인 -->
-            <article class="bg-gray-950 p-6 rounded-xl border border-gray-800">
-              <h3 class="text-base font-bold text-pink-400 mb-6">월별 축제 개최 현황</h3>
-
-              <div
-                class="h-64 flex items-end justify-center gap-8 border-b border-l border-gray-800 px-6"
-              >
-                <div class="flex flex-col items-center gap-2">
-                  <div
-                    class="w-12 h-24 rounded-t-lg bg-gradient-to-t from-pink-700 to-pink-500"
-                  ></div>
-
-                  <span class="text-xs text-gray-500"> 4월 </span>
-                </div>
-
-                <div class="flex flex-col items-center gap-2">
-                  <div
-                    class="w-12 h-36 rounded-t-lg bg-gradient-to-t from-purple-700 to-purple-500"
-                  ></div>
-
-                  <span class="text-xs text-gray-500"> 5월 </span>
-                </div>
-
-                <div class="flex flex-col items-center gap-2">
-                  <div
-                    class="w-12 h-52 rounded-t-lg bg-gradient-to-t from-pink-700 to-pink-500"
-                  ></div>
-
-                  <span class="text-xs text-gray-500"> 6월 </span>
-                </div>
-              </div>
-            </article>
+              <p class="text-sm text-gray-400">
+                서울 관광 데이터를 기반으로 핵심 지표와 주요 패턴을 한눈에 확인할 수 있습니다.
+              </p>
+            </div>
           </div>
+
+          <AnalyticsDashboard />
         </div>
       </section>
     </main>
@@ -613,7 +452,6 @@ function switchTab(tabId) {
         class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-500"
       >
         <p>© 2026 SEOUL FESTA. All rights reserved.</p>
-
         <p>Source Data: 한국관광공사 국문 관광정보 서비스</p>
       </div>
     </footer>
