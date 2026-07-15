@@ -6,13 +6,20 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+
   tourSpots: {
     type: Array,
     default: () => [],
   },
+
   lodgings: {
     type: Array,
     default: () => [],
+  },
+
+  selectedDistrict: {
+    type: String,
+    default: '서울 전체',
   },
 })
 
@@ -23,6 +30,8 @@ const FESTIVAL_COLOR = '#ff007f'
 const TOUR_COLOR = '#22d3ee'
 
 const LODGING_COLOR = '#facc15'
+
+const ALL_DISTRICTS = '서울 전체'
 
 const SEOUL_DEFAULT_VIEW = {
   latitude: 37.5665,
@@ -36,121 +45,145 @@ const SEOUL_DISTRICT_CENTER_MAP = {
     longitude: 126.979,
     level: 6,
   },
+
   중구: {
     latitude: 37.5641,
     longitude: 126.9979,
     level: 6,
   },
+
   용산구: {
     latitude: 37.5326,
     longitude: 126.9905,
     level: 6,
   },
+
   성동구: {
     latitude: 37.5633,
     longitude: 127.0371,
     level: 6,
   },
+
   광진구: {
     latitude: 37.5384,
     longitude: 127.0822,
     level: 6,
   },
+
   동대문구: {
     latitude: 37.5744,
     longitude: 127.0396,
     level: 6,
   },
+
   중랑구: {
     latitude: 37.6063,
     longitude: 127.0927,
     level: 6,
   },
+
   성북구: {
     latitude: 37.5894,
     longitude: 127.0167,
     level: 6,
   },
+
   강북구: {
     latitude: 37.6396,
     longitude: 127.0257,
     level: 6,
   },
+
   도봉구: {
     latitude: 37.6688,
     longitude: 127.0471,
     level: 6,
   },
+
   노원구: {
     latitude: 37.6542,
     longitude: 127.0568,
     level: 6,
   },
+
   은평구: {
     latitude: 37.6027,
     longitude: 126.9291,
     level: 6,
   },
+
   서대문구: {
     latitude: 37.5791,
     longitude: 126.9368,
     level: 6,
   },
+
   마포구: {
     latitude: 37.5663,
     longitude: 126.9016,
     level: 6,
   },
+
   양천구: {
     latitude: 37.5169,
     longitude: 126.8664,
     level: 6,
   },
+
   강서구: {
     latitude: 37.5509,
     longitude: 126.8495,
     level: 6,
   },
+
   구로구: {
     latitude: 37.4954,
     longitude: 126.8874,
     level: 6,
   },
+
   금천구: {
     latitude: 37.4569,
     longitude: 126.8955,
     level: 6,
   },
+
   영등포구: {
     latitude: 37.5264,
     longitude: 126.8963,
     level: 6,
   },
+
   동작구: {
     latitude: 37.5124,
     longitude: 126.9393,
     level: 6,
   },
+
   관악구: {
     latitude: 37.4784,
     longitude: 126.9516,
     level: 6,
   },
+
   서초구: {
     latitude: 37.4837,
     longitude: 127.0324,
     level: 6,
   },
+
   강남구: {
     latitude: 37.5172,
     longitude: 127.0473,
     level: 6,
   },
+
   송파구: {
     latitude: 37.5145,
     longitude: 127.1059,
     level: 6,
   },
+
   강동구: {
     latitude: 37.5301,
     longitude: 127.1238,
@@ -159,33 +192,45 @@ const SEOUL_DISTRICT_CENTER_MAP = {
 }
 
 const mapContainer = ref(null)
-const map = ref(null)
-const activeRegion = ref('서울 전체')
 
-let pendingMapAction = null
-let activeOverlay = null
+const map = ref(null)
 
 const festivalMarkers = ref([])
+
 const tourMarkers = ref([])
+
 const lodgingMarkers = ref([])
 
 const showTourSpots = ref(false)
 
 const showLodgings = ref(false)
 
+let pendingMapAction = null
+
+let activeOverlay = null
+
+// ============================================================================
+// 1. 오버레이 및 마커 정리
+// ============================================================================
 function closeActiveOverlay() {
-  if (!activeOverlay) return
+  if (!activeOverlay) {
+    return
+  }
 
   activeOverlay.setMap(null)
+
   activeOverlay = null
 }
 
-function clearMarkers(list) {
-  list.forEach((marker) => {
+function clearMarkers(markers) {
+  markers.forEach((marker) => {
     marker.setMap(null)
   })
 }
 
+// ============================================================================
+// 2. 마커 이미지 생성
+// ============================================================================
 function createMarkerImage(color = FESTIVAL_COLOR) {
   const encodedColor = encodeURIComponent(color)
 
@@ -205,20 +250,32 @@ function createMarkerImage(color = FESTIVAL_COLOR) {
   return new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption)
 }
 
+// ============================================================================
+// 3. 축제 마커
+// ============================================================================
 function createFestivalMarkers() {
   clearMarkers(festivalMarkers.value)
 
   festivalMarkers.value = []
+
+  if (!map.value) {
+    return
+  }
 
   props.festivals.forEach((festival) => {
     if (!festival.mapx || !festival.mapy) {
       return
     }
 
-    const markerPosition = new kakao.maps.LatLng(
-      parseFloat(festival.mapy),
-      parseFloat(festival.mapx),
-    )
+    const latitude = Number(festival.mapy)
+
+    const longitude = Number(festival.mapx)
+
+    if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
+      return
+    }
+
+    const markerPosition = new kakao.maps.LatLng(latitude, longitude)
 
     const marker = new kakao.maps.Marker({
       position: markerPosition,
@@ -255,14 +312,17 @@ function showFestivalInfo(festival, marker) {
     </div>
   `
 
-  const infowindow = new kakao.maps.InfoWindow({
+  const infoWindow = new kakao.maps.InfoWindow({
     content,
     removable: true,
   })
 
-  infowindow.open(map.value, marker)
+  infoWindow.open(map.value, marker)
 }
 
+// ============================================================================
+// 4. 관광지·숙박 오버레이
+// ============================================================================
 function buildPoiCardElement(item, accentColor, typeLabel) {
   const wrapper = document.createElement('div')
 
@@ -285,7 +345,15 @@ function buildPoiCardElement(item, accentColor, typeLabel) {
       </button>
     </div>
 
-    ${item.firstimage ? `<img class="poi-card-img" src="${item.firstimage}" alt="" />` : ''}
+    ${
+      item.firstimage
+        ? `<img
+            class="poi-card-img"
+            src="${item.firstimage}"
+            alt=""
+          />`
+        : ''
+    }
 
     <div class="poi-card-body">
       <h4 class="poi-card-title">
@@ -323,12 +391,15 @@ function showPoiOverlay(item, position, accentColor, typeLabel) {
   activeOverlay.setMap(map.value)
 }
 
+// ============================================================================
+// 5. 관광지 마커
+// ============================================================================
 function createTourMarkers() {
   clearMarkers(tourMarkers.value)
 
   tourMarkers.value = []
 
-  if (!showTourSpots.value) {
+  if (!map.value || !showTourSpots.value) {
     return
   }
 
@@ -337,7 +408,15 @@ function createTourMarkers() {
       return
     }
 
-    const position = new kakao.maps.LatLng(parseFloat(spot.mapy), parseFloat(spot.mapx))
+    const latitude = Number(spot.mapy)
+
+    const longitude = Number(spot.mapx)
+
+    if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
+      return
+    }
+
+    const position = new kakao.maps.LatLng(latitude, longitude)
 
     const marker = new kakao.maps.Marker({
       position,
@@ -355,12 +434,15 @@ function createTourMarkers() {
   })
 }
 
+// ============================================================================
+// 6. 숙박 마커
+// ============================================================================
 function createLodgingMarkers() {
   clearMarkers(lodgingMarkers.value)
 
   lodgingMarkers.value = []
 
-  if (!showLodgings.value) {
+  if (!map.value || !showLodgings.value) {
     return
   }
 
@@ -369,7 +451,15 @@ function createLodgingMarkers() {
       return
     }
 
-    const position = new kakao.maps.LatLng(parseFloat(lodging.mapy), parseFloat(lodging.mapx))
+    const latitude = Number(lodging.mapy)
+
+    const longitude = Number(lodging.mapx)
+
+    if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
+      return
+    }
+
+    const position = new kakao.maps.LatLng(latitude, longitude)
 
     const marker = new kakao.maps.Marker({
       position,
@@ -387,6 +477,9 @@ function createLodgingMarkers() {
   })
 }
 
+// ============================================================================
+// 7. 관광지·숙박 표시 토글
+// ============================================================================
 function toggleTourSpots() {
   showTourSpots.value = !showTourSpots.value
 }
@@ -395,6 +488,9 @@ function toggleLodgings() {
   showLodgings.value = !showLodgings.value
 }
 
+// ============================================================================
+// 8. 지도 이동
+// ============================================================================
 function executeMapAction(action) {
   if (!map.value) {
     pendingMapAction = action
@@ -408,13 +504,13 @@ function executeMapAction(action) {
     if (action.type === 'district') {
       const target = SEOUL_DISTRICT_CENTER_MAP[action.districtName]
 
-      if (!target) return
+      if (!target) {
+        return
+      }
 
       map.value.setLevel(target.level)
 
       map.value.setCenter(new kakao.maps.LatLng(target.latitude, target.longitude))
-
-      activeRegion.value = action.districtName
 
       return
     }
@@ -424,13 +520,15 @@ function executeMapAction(action) {
     map.value.setCenter(
       new kakao.maps.LatLng(SEOUL_DEFAULT_VIEW.latitude, SEOUL_DEFAULT_VIEW.longitude),
     )
-
-    activeRegion.value = '서울 전체'
   })
 }
 
 function focusDistrict(districtName) {
-  if (!districtName) return
+  if (!districtName || districtName === ALL_DISTRICTS) {
+    resetMap()
+
+    return
+  }
 
   closeActiveOverlay()
 
@@ -448,6 +546,9 @@ function resetMap() {
   })
 }
 
+// ============================================================================
+// 9. 지도 초기화
+// ============================================================================
 function initMap() {
   if (!mapContainer.value) {
     return
@@ -455,13 +556,16 @@ function initMap() {
 
   const options = {
     center: new kakao.maps.LatLng(SEOUL_DEFAULT_VIEW.latitude, SEOUL_DEFAULT_VIEW.longitude),
+
     level: SEOUL_DEFAULT_VIEW.level,
   }
 
   map.value = new kakao.maps.Map(mapContainer.value, options)
 
   createFestivalMarkers()
+
   createTourMarkers()
+
   createLodgingMarkers()
 
   if (pendingMapAction) {
@@ -470,13 +574,24 @@ function initMap() {
     pendingMapAction = null
 
     executeMapAction(action)
+
+    return
+  }
+
+  if (props.selectedDistrict !== ALL_DISTRICTS) {
+    focusDistrict(props.selectedDistrict)
   }
 }
 
+// ============================================================================
+// 10. 지도 축제 정보창 제목 클릭
+// ============================================================================
 function handleInfoTitleClick(event) {
   const target = event.target.closest('.info-title')
 
-  if (!target) return
+  if (!target) {
+    return
+  }
 
   const contentId = target.dataset.contentid
 
@@ -485,6 +600,9 @@ function handleInfoTitleClick(event) {
   }
 }
 
+// ============================================================================
+// 11. 생명주기
+// ============================================================================
 onMounted(() => {
   document.addEventListener('click', handleInfoTitleClick)
 
@@ -503,45 +621,55 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleInfoTitleClick)
 
   closeActiveOverlay()
+
+  clearMarkers(festivalMarkers.value)
+
+  clearMarkers(tourMarkers.value)
+
+  clearMarkers(lodgingMarkers.value)
 })
+
+// ============================================================================
+// 12. props와 토글 상태 감시
+// ============================================================================
+watch(
+  () => props.selectedDistrict,
+  (districtName) => {
+    if (districtName === ALL_DISTRICTS) {
+      resetMap()
+    } else {
+      focusDistrict(districtName)
+    }
+  },
+)
 
 watch(
   () => props.festivals,
   () => {
-    if (map.value) {
-      createFestivalMarkers()
-    }
+    createFestivalMarkers()
   },
 )
 
 watch(
   () => props.tourSpots,
   () => {
-    if (map.value) {
-      createTourMarkers()
-    }
+    createTourMarkers()
   },
 )
 
 watch(
   () => props.lodgings,
   () => {
-    if (map.value) {
-      createLodgingMarkers()
-    }
+    createLodgingMarkers()
   },
 )
 
 watch(showTourSpots, () => {
-  if (map.value) {
-    createTourMarkers()
-  }
+  createTourMarkers()
 })
 
 watch(showLodgings, () => {
-  if (map.value) {
-    createLodgingMarkers()
-  }
+  createLodgingMarkers()
 })
 
 defineExpose({
@@ -552,10 +680,13 @@ defineExpose({
 
 <template>
   <div class="map-panel">
+    <!-- ================================================================ -->
+    <!-- 지도 제목 및 마커 토글 -->
+    <!-- ================================================================ -->
     <div class="map-info">
       <h3 class="neon-text">서울 축제 지도</h3>
 
-      <p>축제 위치를 지도에서 확인하세요</p>
+      <p>축제 위치를 지도에서 확인하세요.</p>
 
       <div class="poi-toggle-row">
         <button type="button" class="poi-toggle poi-toggle-festival" disabled>🎪 축제</button>
@@ -584,8 +715,14 @@ defineExpose({
       </div>
     </div>
 
+    <!-- ================================================================ -->
+    <!-- 카카오 지도 -->
+    <!-- ================================================================ -->
     <div ref="mapContainer" class="map-container"></div>
 
+    <!-- ================================================================ -->
+    <!-- 지도 하단 정보 -->
+    <!-- ================================================================ -->
     <div class="quick-info">
       <div class="info-item">
         <span class="label"> 표시된 축제 마커 </span>
@@ -594,10 +731,10 @@ defineExpose({
       </div>
 
       <div class="info-item">
-        <span class="label"> 지역 </span>
+        <span class="label"> 현재 선택 지역 </span>
 
         <span class="value">
-          {{ activeRegion }}
+          {{ selectedDistrict }}
         </span>
       </div>
     </div>
@@ -606,14 +743,14 @@ defineExpose({
 
 <style scoped>
 .map-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 760px;
+  padding: 24px;
   background: rgba(15, 23, 42, 0.5);
   border: 1px solid rgba(255, 0, 127, 0.3);
   border-radius: 20px;
-  padding: 24px;
   box-shadow: 0 0 20px rgba(255, 0, 127, 0.1);
-  min-height: 760px;
-  display: flex;
-  flex-direction: column;
   backdrop-filter: blur(10px);
 }
 
@@ -624,20 +761,20 @@ defineExpose({
 
 .map-info h3 {
   margin: 0 0 6px;
-  font-size: 1.3rem;
   color: #f3f4f6;
+  font-size: 1.3rem;
   font-weight: 700;
 }
 
 .neon-text {
   font-family: 'Orbitron', sans-serif;
+  background: linear-gradient(135deg, #ff007f, #7b2cbf);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   text-shadow:
     0 0 10px #ff007f,
     0 0 20px #ff007f;
-  background: linear-gradient(135deg, #ff007f, #7b2cbf);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .map-info p {
@@ -655,50 +792,51 @@ defineExpose({
 .poi-toggle {
   flex: 1;
   padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(156, 163, 175, 0.3);
-  background: rgba(20, 30, 50, 0.6);
   color: #9ca3af;
   font-size: 0.82rem;
   font-weight: 600;
+  background: rgba(20, 30, 50, 0.6);
+  border: 1px solid rgba(156, 163, 175, 0.3);
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .poi-toggle:disabled {
-  cursor: default;
-  border-color: rgba(255, 0, 127, 0.6);
-  background: rgba(255, 0, 127, 0.12);
   color: #f472b6;
+  background: rgba(255, 0, 127, 0.12);
+  border-color: rgba(255, 0, 127, 0.6);
+  cursor: default;
 }
 
 .poi-toggle-tour.active {
-  border-color: #22d3ee;
-  background: rgba(34, 211, 238, 0.15);
   color: #22d3ee;
+  background: rgba(34, 211, 238, 0.15);
+  border-color: #22d3ee;
   box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
 }
 
 .poi-toggle-lodging.active {
-  border-color: #facc15;
-  background: rgba(250, 204, 21, 0.15);
   color: #facc15;
+  background: rgba(250, 204, 21, 0.15);
+  border-color: #facc15;
   box-shadow: 0 0 10px rgba(250, 204, 21, 0.3);
 }
 
 .poi-toggle:not(.active):not(:disabled):hover {
-  border-color: rgba(255, 255, 255, 0.4);
   color: #d1d5db;
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .map-container {
   flex: 1;
-  margin: 16px 0;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 0, 127, 0.2);
-  overflow: hidden;
+  width: 100%;
   min-height: 560px;
   height: 100%;
+  margin: 16px 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 0, 127, 0.2);
+  border-radius: 12px;
 }
 
 .quick-info {
@@ -728,33 +866,51 @@ defineExpose({
   color: #9ca3af;
   font-size: 0.8rem;
   font-weight: 600;
-  text-transform: uppercase;
   letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .value {
-  color: #f472b6;
-  font-weight: 700;
-  font-size: 1.2rem;
   margin-top: 4px;
+  color: #f472b6;
+  font-size: 1.2rem;
+  font-weight: 700;
   text-shadow: 0 0 8px rgba(255, 0, 127, 0.3);
+}
+
+@media (max-width: 640px) {
+  .map-panel {
+    padding: 16px;
+  }
+
+  .quick-info {
+    grid-template-columns: 1fr;
+  }
+
+  .poi-toggle-row {
+    flex-wrap: wrap;
+  }
+
+  .poi-toggle {
+    min-width: calc(50% - 4px);
+  }
 }
 </style>
 
 <style>
 .marker-info {
+  max-width: 220px;
   padding: 10px 12px;
   font-size: 0.85rem;
   line-height: 1.5;
-  max-width: 220px;
 }
 
 .marker-info .info-title {
   display: block;
-  cursor: pointer;
   color: #d6336c;
   text-decoration: underline;
   text-underline-offset: 2px;
+  cursor: pointer;
 }
 
 .marker-info .info-title:hover {
@@ -768,12 +924,12 @@ defineExpose({
 
 .poi-card {
   width: 220px;
+  overflow: hidden;
+  font-family: inherit;
   background: #10192e;
   border: 1px solid var(--poi-accent, #ff007f);
   border-radius: 12px;
-  overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  font-family: inherit;
 }
 
 .poi-card-top {
@@ -785,21 +941,21 @@ defineExpose({
 }
 
 .poi-card-badge {
+  color: #0b0f19;
   font-size: 0.7rem;
   font-weight: 700;
-  color: #0b0f19;
-  text-transform: uppercase;
   letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .poi-card-close {
-  border: none;
-  background: transparent;
+  padding: 2px 4px;
   color: #0b0f19;
   font-size: 0.95rem;
   line-height: 1;
+  background: transparent;
+  border: none;
   cursor: pointer;
-  padding: 2px 4px;
 }
 
 .poi-card-img {
@@ -815,17 +971,17 @@ defineExpose({
 
 .poi-card-title {
   margin: 0 0 6px;
+  color: #f3f4f6;
   font-size: 0.92rem;
   font-weight: 700;
-  color: #f3f4f6;
   line-height: 1.3;
 }
 
 .poi-card-addr,
 .poi-card-tel {
   margin: 4px 0 0;
-  font-size: 0.78rem;
   color: #d1d5db;
+  font-size: 0.78rem;
   line-height: 1.4;
 }
 
