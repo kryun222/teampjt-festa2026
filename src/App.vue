@@ -13,9 +13,9 @@ const festivals = festivalData.items || []
 
 // 홈에 노출할 추천 축제 (contentid로 JSON에서 직접 조회 -> 날짜 하드코딩 제거)
 const FEATURED = [
-  { id: '1998564', badge: '★ Hot', badgeClass: 'bg-pink-600' },
-  { id: '2756396', badge: 'Night', badgeClass: 'bg-purple-600' },
-  { id: '4074598', badge: 'Nature', badgeClass: 'bg-blue-600' },
+  { id: '1829696', badge: '★ Hot', badgeClass: 'bg-pink-600' },
+  { id: '2387785', badge: 'New', badgeClass: 'bg-purple-600' },
+  { id: '3509884', badge: 'Summer', badgeClass: 'bg-blue-600' },
 ]
 
 const featuredFestivals = computed(() =>
