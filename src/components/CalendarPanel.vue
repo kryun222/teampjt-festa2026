@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps({
   month: { type: Date, required: true },
@@ -8,16 +8,15 @@ const props = defineProps({
 
 const emit = defineEmits(['month-change', 'festival-click'])
 
-// 축제 날짜만 추출
-function getFestivalDate(festival) {
-  const dateStr = festival.modifiedtime
+// YYYYMMDD 문자열 -> Date (유효하지 않으면 null)
+function parseYmd(dateStr) {
   if (!dateStr || dateStr.length < 8) return null
-  
-  return new Date(
-    parseInt(dateStr.slice(0, 4)),
-    parseInt(dateStr.slice(4, 6)) - 1,
-    parseInt(dateStr.slice(6, 8))
+  const date = new Date(
+    parseInt(dateStr.slice(0, 4), 10),
+    parseInt(dateStr.slice(4, 6), 10) - 1,
+    parseInt(dateStr.slice(6, 8), 10)
   )
+  return isNaN(date.getTime()) ? null : date
 }
 
 function formatDateKey(date) {
@@ -28,19 +27,19 @@ function formatDateKey(date) {
   return `${year}-${month}-${day}`
 }
 
-// 달력 일자별 축제 매칭
+// 달력 42칸 (6주 x 7일) 생성
 const calendarDays = computed(() => {
   const year = props.month.getFullYear()
   const month = props.month.getMonth()
-  
+
   const firstDay = new Date(year, month, 1)
   const lastDay = new Date(year, month + 1, 0)
-  
+
   const daysInMonth = lastDay.getDate()
   const startingDayOfWeek = firstDay.getDay()
-  
+
   const days = []
-  
+
   for (let i = startingDayOfWeek - 1; i >= 0; i--) {
     const prevDate = new Date(year, month, -i)
     days.push({
@@ -50,7 +49,7 @@ const calendarDays = computed(() => {
       dateKey: formatDateKey(prevDate)
     })
   }
-  
+
   for (let i = 1; i <= daysInMonth; i++) {
     const date = new Date(year, month, i)
     days.push({
@@ -60,33 +59,48 @@ const calendarDays = computed(() => {
       dateKey: formatDateKey(date)
     })
   }
-  
+
   const remainingDays = 42 - days.length
   for (let i = 1; i <= remainingDays; i++) {
+    const nextDate = new Date(year, month + 1, i)
     days.push({
       date: i,
       isCurrentMonth: false,
-      fullDate: null,
-      dateKey: null
+      fullDate: nextDate,
+      dateKey: formatDateKey(nextDate)
     })
   }
-  
+
   return days
 })
 
-// 특정 날짜에 진행 중인 축제 찾기
+// 날짜별로 "시작하는 축제"와 "끝나는 축제"만 매칭 (기간 전체를 채우지 않음)
 const festivalsByDate = computed(() => {
   const map = {}
-  
-  props.festivals.forEach(festival => {
-    const date = getFestivalDate(festival)
-    if (!date) return
-    
-    const key = formatDateKey(date)
+
+  function addEntry(key, festival, type) {
+    if (!key) return
     if (!map[key]) map[key] = []
-    map[key].push(festival)
+    map[key].push({ festival, type })
+  }
+
+  props.festivals.forEach(festival => {
+    const start = parseYmd(festival.eventstartdate)
+    const end = parseYmd(festival.eventenddate) || start
+    if (!start) return
+
+    const startKey = formatDateKey(start)
+    const endKey = formatDateKey(end)
+
+    if (startKey === endKey) {
+      // 하루짜리 행사
+      addEntry(startKey, festival, 'single')
+    } else {
+      addEntry(startKey, festival, 'start')
+      addEntry(endKey, festival, 'end')
+    }
   })
-  
+
   return map
 })
 
@@ -102,7 +116,6 @@ function nextMonth() {
   emit('month-change', next)
 }
 
-// ✅ 추가: 축제 배지 클릭 핸들러
 function onFestivalClick(festival) {
   emit('festival-click', festival)
 }
@@ -115,6 +128,9 @@ const monthYear = computed(() =>
 )
 
 const weekDays = ['일', '월', '화', '수', '목', '금', '토']
+
+// 배지 앞에 붙는 표시: 시작일 ▶ / 종료일 ■ / 하루짜리는 표시 없음
+const typeIcon = { start: '▶', end: '■', single: '' }
 </script>
 
 <template>
@@ -122,7 +138,7 @@ const weekDays = ['일', '월', '화', '수', '목', '금', '토']
     <div class="calendar-header">
       <div>
         <h3 class="neon-text">{{ monthYear }}</h3>
-        <p>월별 축제 일정을 확인하세요</p>
+        <p>월별 축제 일정을 확인하세요 (▶ 시작일 · ■ 종료일)</p>
       </div>
       <div class="calendar-actions">
         <button @click="prevMonth" class="neon-btn">◀ 이전</button>
@@ -141,7 +157,7 @@ const weekDays = ['일', '월', '화', '수', '목', '금', '토']
         v-for="(day, idx) in calendarDays"
         :key="idx"
         class="calendar-day"
-        :class="{ 
+        :class="{
           inactive: !day.isCurrentMonth,
           'has-festival': day.dateKey && festivalsByDate[day.dateKey]?.length > 0
         }"
@@ -149,15 +165,17 @@ const weekDays = ['일', '월', '화', '수', '목', '금', '토']
         <div class="day-number">{{ day.date }}</div>
         <div class="day-festivals">
           <div
-            v-for="(festival, i) in (day.dateKey ? (festivalsByDate[day.dateKey] || []).slice(0, 2) : [])"
-            :key="festival.contentid || i"
+            v-for="(entry, i) in (day.dateKey ? (festivalsByDate[day.dateKey] || []).slice(0, 2) : [])"
+            :key="entry.festival.contentid || i"
             class="festival-badge"
-            :title="festival.title"
-            @click="onFestivalClick(festival)"
+            :class="`badge-${entry.type}`"
+            :title="entry.festival.title"
+            @click="onFestivalClick(entry.festival)"
           >
-            {{ festival.title.slice(0, 10) }}
+            <span v-if="typeIcon[entry.type]" class="badge-icon">{{ typeIcon[entry.type] }}</span>
+            {{ entry.festival.title.slice(0, 9) }}
           </div>
-          <div 
+          <div
             v-if="day.dateKey && (festivalsByDate[day.dateKey] || []).length > 2"
             class="festival-more"
           >
@@ -174,9 +192,10 @@ const weekDays = ['일', '월', '화', '수', '목', '금', '토']
   background: rgba(15, 23, 42, 0.5);
   border: 1px solid rgba(255, 0, 127, 0.3);
   border-radius: 20px;
-  padding: 24px;
+  padding: 20px;
   box-shadow: 0 0 20px rgba(255, 0, 127, 0.1);
-  min-height: 520px;
+  max-width: 1000px;
+  margin: 0 auto;
   backdrop-filter: blur(10px);
 }
 
@@ -308,26 +327,44 @@ const weekDays = ['일', '월', '화', '수', '목', '금', '토']
 .day-festivals {
   flex: 1;
   overflow-y: auto;
-  font-size: 0.5rem;
+  font-size: 0.8rem;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .festival-badge {
   background: linear-gradient(135deg, rgba(255, 0, 127, 0.3), rgba(123, 44, 191, 0.3));
   color: #f472b6;
-  padding: 3px 4px;
-  border-radius: 3px;
-  border-left: 2px solid #ff007f;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border-left: 3px solid #ff007f;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-weight: 600;
-  line-height: 1.2;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* 시작일 배지: 초록 계열로 구분 */
+.festival-badge.badge-start {
+  border-left-color: #34d399;
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.25), rgba(123, 44, 191, 0.25));
+  color: #6ee7b7;
+}
+
+/* 종료일 배지: 붉은 계열로 구분 */
+.festival-badge.badge-end {
+  border-left-color: #f87171;
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.25), rgba(123, 44, 191, 0.25));
+  color: #fca5a5;
+}
+
+.badge-icon {
+  margin-right: 2px;
 }
 
 .festival-badge:hover {
@@ -335,11 +372,12 @@ const weekDays = ['일', '월', '화', '수', '목', '금', '토']
   border-left-color: #7b2cbf;
   box-shadow: 0 0 8px rgba(255, 0, 127, 0.6);
   transform: scale(1.05);
+  color: #fff;
 }
 
 .festival-more {
   color: #9ca3af;
-  font-size: 0.45rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-align: center;
   padding: 2px 0;
