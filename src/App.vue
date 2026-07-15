@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, watch } from 'vue'
 import FestivalDashboard from '@/views/FestivalDashboard.vue'
 
 import AnalyticsDashboard from '@/analytics/components/AnalyticsDashboard.vue'
@@ -97,7 +97,9 @@ async function handleDashboardCalendarNavigation(request) {
 }
 
 // --- Community state and handlers ---
-const posts = ref([
+const COMMUNITY_POSTS_STORAGE_KEY = 'seoulfesta-community-posts'
+
+const DEFAULT_POSTS = [
   {
     id: 1,
     author: '서울여행자',
@@ -117,7 +119,36 @@ const posts = ref([
     editingCommentId: null,
     editingCommentText: '',
   },
-])
+]
+
+// 새로고침해도 게시글이 유지되도록 localStorage에서 우선 복원합니다.
+function loadPostsFromStorage() {
+  try {
+    const raw = localStorage.getItem(COMMUNITY_POSTS_STORAGE_KEY)
+    if (!raw) return null
+
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : null
+  } catch (e) {
+    console.warn('게시글을 불러오지 못했습니다.', e)
+    return null
+  }
+}
+
+const posts = ref(loadPostsFromStorage() ?? DEFAULT_POSTS)
+
+// posts가 변경될 때마다(등록/수정/삭제/좋아요/댓글) localStorage에 저장합니다.
+watch(
+  posts,
+  (newPosts) => {
+    try {
+      localStorage.setItem(COMMUNITY_POSTS_STORAGE_KEY, JSON.stringify(newPosts))
+    } catch (e) {
+      console.warn('게시글을 저장하지 못했습니다.', e)
+    }
+  },
+  { deep: true },
+)
 
 const form = ref({
   author: '',
@@ -196,7 +227,8 @@ function confirmPw() {
   if (!post) return hidePwPrompt()
 
   // determine expected password based on mode
-  const expected = (mode === 'editComment' || mode === 'deleteComment') ? (comment && comment.password) : post.password
+  const expected =
+    mode === 'editComment' || mode === 'deleteComment' ? comment && comment.password : post.password
   if (input !== expected) {
     alert('비밀번호가 일치하지 않습니다.')
     return
@@ -323,12 +355,30 @@ function cancelEditComment(post) {
       <!-- 1. 홈 탭 -->
       <!-- ================================================== -->
       <section v-show="activeTab === 'main'" class="festival-main-stage relative overflow-hidden">
-        <div class="festival-main-stage__wave festival-main-stage__wave--one" aria-hidden="true"></div>
-        <div class="festival-main-stage__wave festival-main-stage__wave--two" aria-hidden="true"></div>
-        <div class="festival-main-stage__spark festival-main-stage__spark--one" aria-hidden="true"></div>
-        <div class="festival-main-stage__spark festival-main-stage__spark--two" aria-hidden="true"></div>
-        <div class="festival-main-stage__spark festival-main-stage__spark--three" aria-hidden="true"></div>
-        <div class="festival-main-stage__spark festival-main-stage__spark--four" aria-hidden="true"></div>
+        <div
+          class="festival-main-stage__wave festival-main-stage__wave--one"
+          aria-hidden="true"
+        ></div>
+        <div
+          class="festival-main-stage__wave festival-main-stage__wave--two"
+          aria-hidden="true"
+        ></div>
+        <div
+          class="festival-main-stage__spark festival-main-stage__spark--one"
+          aria-hidden="true"
+        ></div>
+        <div
+          class="festival-main-stage__spark festival-main-stage__spark--two"
+          aria-hidden="true"
+        ></div>
+        <div
+          class="festival-main-stage__spark festival-main-stage__spark--three"
+          aria-hidden="true"
+        ></div>
+        <div
+          class="festival-main-stage__spark festival-main-stage__spark--four"
+          aria-hidden="true"
+        ></div>
 
         <div class="relative z-10 mx-auto max-w-7xl px-4 py-8 space-y-12">
           <!-- Hero -->
@@ -364,7 +414,7 @@ function cancelEditComment(post) {
                   축제 일정 보러가기
                 </button>
 
-                                <button
+                <button
                   type="button"
                   class="bg-gray-800/80 border border-gray-700 hover:bg-gray-700 px-6 py-3 rounded-xl font-bold transition"
                   @click="switchTab('community')"
@@ -524,7 +574,11 @@ function cancelEditComment(post) {
                 </div>
 
                 <div class="flex justify-end gap-2">
-                  <button type="button" class="bg-gray-800 px-4 py-2 rounded-lg text-sm" @click="resetForm">
+                  <button
+                    type="button"
+                    class="bg-gray-800 px-4 py-2 rounded-lg text-sm"
+                    @click="resetForm"
+                  >
                     취소
                   </button>
 
@@ -540,62 +594,139 @@ function cancelEditComment(post) {
 
               <!-- 게시글 카드 -->
               <template v-if="posts.length">
-                <article v-for="post in posts" :key="post.id" class="bg-gray-950 p-5 rounded-xl border border-gray-800 space-y-3 mb-4">
+                <article
+                  v-for="post in posts"
+                  :key="post.id"
+                  class="bg-gray-950 p-5 rounded-xl border border-gray-800 space-y-3 mb-4"
+                >
                   <div class="flex justify-between items-start gap-4">
                     <div>
-                      <span class="text-xs text-gray-500 font-mono">작성자: {{ post.author }} | {{ post.date }}</span>
+                      <span class="text-xs text-gray-500 font-mono"
+                        >작성자: {{ post.author }} | {{ post.date }}</span
+                      >
 
                       <h3 class="text-base font-bold text-white mt-1">{{ post.title }}</h3>
                     </div>
 
                     <div class="flex gap-1.5 items-center">
-                      <button type="button" class="text-xs text-yellow-300 bg-gray-800 px-2 py-1 rounded flex items-center gap-1" @click="toggleLike(post)">
+                      <button
+                        type="button"
+                        class="text-xs text-yellow-300 bg-gray-800 px-2 py-1 rounded flex items-center gap-1"
+                        @click="toggleLike(post)"
+                      >
                         <span>{{ post.liked ? '💖' : '🤍' }}</span>
                         <span class="text-xs">{{ post.likes || 0 }}</span>
                       </button>
 
-                      <button type="button" class="text-xs text-gray-300 bg-gray-800 px-2 py-1 rounded flex items-center justify-center" @click="toggleComments(post)" :aria-pressed="post.showComments">
+                      <button
+                        type="button"
+                        class="text-xs text-gray-300 bg-gray-800 px-2 py-1 rounded flex items-center justify-center"
+                        @click="toggleComments(post)"
+                        :aria-pressed="post.showComments"
+                      >
                         <span class="text-sm">{{ post.showComments ? '▴' : '▾' }}</span>
                       </button>
 
-                      <button type="button" class="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded" @click="onEditClick(post)">수정</button>
+                      <button
+                        type="button"
+                        class="text-xs text-gray-400 bg-gray-800 px-2 py-1 rounded"
+                        @click="onEditClick(post)"
+                      >
+                        수정
+                      </button>
 
-                      <button type="button" class="text-xs text-red-400 bg-red-950/20 px-2 py-1 rounded" @click="onDeleteClick(post)">삭제</button>
+                      <button
+                        type="button"
+                        class="text-xs text-red-400 bg-red-950/20 px-2 py-1 rounded"
+                        @click="onDeleteClick(post)"
+                      >
+                        삭제
+                      </button>
                     </div>
                   </div>
 
                   <p class="text-sm text-gray-300">{{ post.content }}</p>
 
-                  <div v-if="post.showComments" class="mt-3 border-t border-gray-800 pt-3 space-y-3">
+                  <div
+                    v-if="post.showComments"
+                    class="mt-3 border-t border-gray-800 pt-3 space-y-3"
+                  >
                     <div v-if="post.comments && post.comments.length" class="space-y-2">
-                        <div v-for="c in post.comments" :key="c.id" class="text-sm text-gray-300 bg-gray-900 p-2 rounded">
-                          <div class="flex justify-between items-start gap-2">
-                            <div>
-                              <div class="text-xs text-gray-500">{{ c.author }} · {{ c.date }}</div>
-                            </div>
-                            <div class="flex gap-2">
-                              <button class="text-xs text-gray-400 px-2 py-0.5 rounded" @click="onEditCommentClick(post, c)">수정</button>
-                              <button class="text-xs text-red-400 px-2 py-0.5 rounded" @click="onDeleteCommentClick(post, c)">삭제</button>
-                            </div>
+                      <div
+                        v-for="c in post.comments"
+                        :key="c.id"
+                        class="text-sm text-gray-300 bg-gray-900 p-2 rounded"
+                      >
+                        <div class="flex justify-between items-start gap-2">
+                          <div>
+                            <div class="text-xs text-gray-500">{{ c.author }} · {{ c.date }}</div>
                           </div>
-
-                          <div v-if="post.editingCommentId === c.id" class="mt-2">
-                            <textarea v-model="post.editingCommentText" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-white outline-none mb-2"></textarea>
-                            <div class="flex justify-end gap-2">
-                              <button class="bg-gray-800 px-3 py-1 rounded text-sm" @click="cancelEditComment(post)">취소</button>
-                              <button class="bg-pink-600 px-3 py-1 rounded text-sm text-white" @click="saveEditedComment(post)">저장</button>
-                            </div>
+                          <div class="flex gap-2">
+                            <button
+                              class="text-xs text-gray-400 px-2 py-0.5 rounded"
+                              @click="onEditCommentClick(post, c)"
+                            >
+                              수정
+                            </button>
+                            <button
+                              class="text-xs text-red-400 px-2 py-0.5 rounded"
+                              @click="onDeleteCommentClick(post, c)"
+                            >
+                              삭제
+                            </button>
                           </div>
-
-                          <div v-else class="mt-1">{{ c.text }}</div>
                         </div>
+
+                        <div v-if="post.editingCommentId === c.id" class="mt-2">
+                          <textarea
+                            v-model="post.editingCommentText"
+                            rows="2"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 text-white outline-none mb-2"
+                          ></textarea>
+                          <div class="flex justify-end gap-2">
+                            <button
+                              class="bg-gray-800 px-3 py-1 rounded text-sm"
+                              @click="cancelEditComment(post)"
+                            >
+                              취소
+                            </button>
+                            <button
+                              class="bg-pink-600 px-3 py-1 rounded text-sm text-white"
+                              @click="saveEditedComment(post)"
+                            >
+                              저장
+                            </button>
+                          </div>
+                        </div>
+
+                        <div v-else class="mt-1">{{ c.text }}</div>
+                      </div>
                     </div>
                     <div class="space-y-2">
-                      <input v-model="post.newCommentAuthor" placeholder="이름(선택)" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white outline-none" />
-                      <input v-model="post.newCommentPassword" type="password" placeholder="비밀번호(댓글 수정/삭제용)" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white outline-none" />
-                      <textarea v-model="post.newCommentText" rows="2" placeholder="댓글을 입력하세요" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white outline-none"></textarea>
+                      <input
+                        v-model="post.newCommentAuthor"
+                        placeholder="이름(선택)"
+                        class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white outline-none"
+                      />
+                      <input
+                        v-model="post.newCommentPassword"
+                        type="password"
+                        placeholder="비밀번호(댓글 수정/삭제용)"
+                        class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white outline-none"
+                      />
+                      <textarea
+                        v-model="post.newCommentText"
+                        rows="2"
+                        placeholder="댓글을 입력하세요"
+                        class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 text-white outline-none"
+                      ></textarea>
                       <div class="flex justify-end">
-                        <button class="bg-pink-600 px-3 py-1 rounded text-sm text-white" @click="addComment(post)">댓글 등록</button>
+                        <button
+                          class="bg-pink-600 px-3 py-1 rounded text-sm text-white"
+                          @click="addComment(post)"
+                        >
+                          댓글 등록
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -604,24 +735,47 @@ function cancelEditComment(post) {
               <p v-else class="text-sm text-gray-400">등록된 게시글이 없습니다.</p>
 
               <!-- 비밀번호 입력 모달 -->
-              <div v-if="pwPrompt.visible" class="fixed inset-0 z-50 flex items-center justify-center">
+              <div
+                v-if="pwPrompt.visible"
+                class="fixed inset-0 z-50 flex items-center justify-center"
+              >
                 <div class="absolute inset-0 bg-black/60" @click="hidePwPrompt"></div>
 
-                <div class="relative bg-gray-900 p-6 rounded-lg border border-gray-800 w-full max-w-md z-10">
+                <div
+                  class="relative bg-gray-900 p-6 rounded-lg border border-gray-800 w-full max-w-md z-10"
+                >
                   <h4 class="text-lg font-bold mb-2 text-white">비밀번호 입력</h4>
-                  <p class="text-sm text-gray-400 mb-4">이 작업을 진행하려면 비밀번호를 입력하세요.</p>
+                  <p class="text-sm text-gray-400 mb-4">
+                    이 작업을 진행하려면 비밀번호를 입력하세요.
+                  </p>
 
-                  <input v-model="pwPrompt.input" type="password" placeholder="비밀번호" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-white outline-none mb-4" />
+                  <input
+                    v-model="pwPrompt.input"
+                    type="password"
+                    placeholder="비밀번호"
+                    class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-white outline-none mb-4"
+                  />
 
                   <div class="flex justify-end gap-2">
-                    <button type="button" class="bg-gray-800 px-3 py-2 rounded text-sm" @click="hidePwPrompt">취소</button>
-                    <button type="button" class="bg-pink-600 px-3 py-2 rounded text-sm text-white" @click="confirmPw">확인</button>
+                    <button
+                      type="button"
+                      class="bg-gray-800 px-3 py-2 rounded text-sm"
+                      @click="hidePwPrompt"
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="button"
+                      class="bg-pink-600 px-3 py-2 rounded text-sm text-white"
+                      @click="confirmPw"
+                    >
+                      확인
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
         </div>
       </section>
 

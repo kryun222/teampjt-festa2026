@@ -14,7 +14,7 @@ function parseYmd(dateStr) {
   const date = new Date(
     parseInt(dateStr.slice(0, 4), 10),
     parseInt(dateStr.slice(4, 6), 10) - 1,
-    parseInt(dateStr.slice(6, 8), 10)
+    parseInt(dateStr.slice(6, 8), 10),
   )
   return isNaN(date.getTime()) ? null : date
 }
@@ -46,7 +46,7 @@ const calendarDays = computed(() => {
       date: prevDate.getDate(),
       isCurrentMonth: false,
       fullDate: prevDate,
-      dateKey: formatDateKey(prevDate)
+      dateKey: formatDateKey(prevDate),
     })
   }
 
@@ -56,7 +56,7 @@ const calendarDays = computed(() => {
       date: i,
       isCurrentMonth: true,
       fullDate: date,
-      dateKey: formatDateKey(date)
+      dateKey: formatDateKey(date),
     })
   }
 
@@ -67,7 +67,7 @@ const calendarDays = computed(() => {
       date: i,
       isCurrentMonth: false,
       fullDate: nextDate,
-      dateKey: formatDateKey(nextDate)
+      dateKey: formatDateKey(nextDate),
     })
   }
 
@@ -84,7 +84,7 @@ const festivalsByDate = computed(() => {
     map[key].push({ festival, type })
   }
 
-  props.festivals.forEach(festival => {
+  props.festivals.forEach((festival) => {
     const start = parseYmd(festival.eventstartdate)
     const end = parseYmd(festival.eventenddate) || start
     if (!start) return
@@ -124,7 +124,7 @@ const monthYear = computed(() =>
   props.month.toLocaleDateString('ko-KR', {
     year: 'numeric',
     month: 'long',
-  })
+  }),
 )
 
 const weekDays = ['일', '월', '화', '수', '목', '금', '토']
@@ -159,13 +159,15 @@ const typeIcon = { start: '▶', end: '■', single: '' }
         class="calendar-day"
         :class="{
           inactive: !day.isCurrentMonth,
-          'has-festival': day.dateKey && festivalsByDate[day.dateKey]?.length > 0
+          'has-festival': day.dateKey && festivalsByDate[day.dateKey]?.length > 0,
         }"
       >
         <div class="day-number">{{ day.date }}</div>
         <div class="day-festivals">
           <div
-            v-for="(entry, i) in (day.dateKey ? (festivalsByDate[day.dateKey] || []).slice(0, 2) : [])"
+            v-for="(entry, i) in day.dateKey
+              ? (festivalsByDate[day.dateKey] || []).slice(0, 2)
+              : []"
             :key="entry.festival.contentid || i"
             class="festival-badge"
             :class="`badge-${entry.type}`"
@@ -194,8 +196,9 @@ const typeIcon = { start: '▶', end: '■', single: '' }
   border-radius: 20px;
   padding: 20px;
   box-shadow: 0 0 20px rgba(255, 0, 127, 0.1);
-  max-width: 1000px;
-  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
   backdrop-filter: blur(10px);
 }
 
@@ -217,7 +220,9 @@ const typeIcon = { start: '▶', end: '■', single: '' }
 
 .neon-text {
   font-family: 'Orbitron', sans-serif;
-  text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f;
+  text-shadow:
+    0 0 10px #ff007f,
+    0 0 20px #ff007f;
   background: linear-gradient(135deg, #ff007f, #7b2cbf);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -256,7 +261,7 @@ const typeIcon = { start: '▶', end: '■', single: '' }
 
 .weekdays {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -272,12 +277,14 @@ const typeIcon = { start: '▶', end: '■', single: '' }
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
   gap: 8px;
 }
 
 .calendar-day {
   aspect-ratio: 1;
+  min-width: 0;
   border: 1px solid rgba(255, 0, 127, 0.2);
   border-radius: 10px;
   padding: 8px;
@@ -326,7 +333,9 @@ const typeIcon = { start: '▶', end: '■', single: '' }
 
 .day-festivals {
   flex: 1;
+  min-width: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   font-size: 0.8rem;
   display: flex;
   flex-direction: column;
