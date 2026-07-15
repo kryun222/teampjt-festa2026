@@ -1,92 +1,46 @@
 <script setup>
-import { computed, nextTick, ref, watch } from 'vue'
-
+import { ref, computed, nextTick } from 'vue'
 import festivalData from '@/data/서울_축제공연행사.json'
 import tourSpotData from '@/data/서울_관광지.json'
 import lodgingData from '@/data/서울_숙박.json'
-
 import CalendarPanel from '@/components/CalendarPanel.vue'
 import MapPanel from '@/components/MapPanel.vue'
 import FestivalList from '@/components/FestivalList.vue'
 
-// ============================================================================
-// 1. App.vue에서 전달받는 캘린더 이동 요청
-// ============================================================================
-const props = defineProps({
-  navigationRequest: {
-    type: Object,
-    default: null,
-  },
-})
-
-// ============================================================================
-// 2. 화면 상태
-// ============================================================================
 const currentMonth = ref(new Date())
-
 const selectedFestivalId = ref(null)
-
-// MapPanel 컴포넌트의 focusDistrict(), resetMap() 호출용
-const mapPanelRef = ref(null)
-
-// 지도 영역 자동 스크롤용
-const mapSectionRef = ref(null)
-
-// ============================================================================
-// 3. 원본 데이터
-// ============================================================================
 const festivals = festivalData.items || []
 const tourSpots = tourSpotData.items || []
 const lodgings = lodgingData.items || []
 
-// ============================================================================
-// 4. 날짜 처리
-// ============================================================================
-function parseYmd(value) {
-  if (!value || value.length < 8) {
-    return null
-  }
-
-  const year = Number(value.slice(0, 4))
-  const month = Number(value.slice(4, 6)) - 1
-  const day = Number(value.slice(6, 8))
-
+// YYYYMMDD 문자열 -> Date (유효하지 않으면 null)
+function parseYmd(str) {
+  if (!str || str.length < 8) return null
+  const year = parseInt(str.slice(0, 4), 10)
+  const month = parseInt(str.slice(4, 6), 10) - 1
+  const day = parseInt(str.slice(6, 8), 10)
   const date = new Date(year, month, day)
-
-  return Number.isNaN(date.getTime()) ? null : date
+  return isNaN(date.getTime()) ? null : date
 }
 
-function getFestivalRange(festival) {
-  const startDate = parseYmd(festival.eventstartdate)
-
-  const endDate = parseYmd(festival.eventenddate) || startDate
-
-  return {
-    startDate,
-    endDate,
-  }
+// 축제의 시작일/종료일 (종료일 없으면 시작일과 동일한 하루짜리로 취급)
+function getFestivalRange(item) {
+  const start = parseYmd(item.eventstartdate)
+  const end = parseYmd(item.eventenddate) || start
+  return { start, end }
 }
 
-// ============================================================================
-// 5. 현재 선택 월에 표시할 축제
-// ============================================================================
+// 현재 월과 축제 기간이 겹치는 축제만 필터링
 const displayedFestivals = computed(() => {
   const year = currentMonth.value.getFullYear()
-
   const month = currentMonth.value.getMonth()
-
   const monthStart = new Date(year, month, 1)
-
   const monthEnd = new Date(year, month + 1, 0)
 
-  return festivals.filter((festival) => {
-    const { startDate, endDate } = getFestivalRange(festival)
-
-    if (!startDate) {
-      return false
-    }
-
-    return startDate <= monthEnd && endDate >= monthStart
+  return festivals.filter(item => {
+    const { start, end } = getFestivalRange(item)
+    if (!start) return false
+    return start <= monthEnd && end >= monthStart
   })
 })
 
@@ -94,281 +48,89 @@ const currentMonthLabel = computed(() =>
   currentMonth.value.toLocaleDateString('ko-KR', {
     year: 'numeric',
     month: 'long',
-  }),
+  })
 )
 
-// ============================================================================
-// 6. 캘린더에서 월 변경
-// ============================================================================
 function handleMonthChange(newMonth) {
   currentMonth.value = newMonth
   selectedFestivalId.value = null
 }
 
-// ============================================================================
-// 7. 축제 목록 이동 및 하이라이트
-// ============================================================================
 function handleFestivalClick(festival) {
-  if (!festival?.contentid) {
-    return
-  }
-
-  const contentId = String(festival.contentid)
-
-  selectedFestivalId.value = contentId
-
-  /*
-   * 월이 변경되면 FestivalList가 다시 렌더링되어야 하므로
-   * DOM 업데이트 이후 해당 축제 카드로 이동합니다.
-   */
-  window.setTimeout(() => {
-    const element = document.querySelector(`[data-festival-id="${contentId}"]`)
-
-    if (!element) {
-      return
+  selectedFestivalId.value = festival.contentid
+  // 다음 프레임에서 스크롤되도록 설정
+  setTimeout(() => {
+    const element = document.querySelector(`[data-festival-id="${festival.contentid}"]`)
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      element.classList.add('highlight')
+      setTimeout(() => element.classList.remove('highlight'), 2000)
     }
-
-    element.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-    })
-
-    element.classList.add('highlight')
-
-    window.setTimeout(() => {
-      element.classList.remove('highlight')
-    }, 2000)
-  }, 100)
+  }, 0)
 }
 
-// ============================================================================
-// 8. 지도 마커에서 축제 선택
-// ============================================================================
+// 지도 마커 정보창의 행사명 클릭 -> 하단 목록으로 스크롤
 function handleMapFestivalSelect(contentId) {
-  const festival = displayedFestivals.value.find(
-    (item) => String(item.contentid) === String(contentId),
-  )
+  const festival = displayedFestivals.value.find(item => item.contentid === contentId)
+  if (festival) handleFestivalClick(festival)
+}
 
-  if (!festival) {
-    return
+// 외부(홈 탭의 '상세보기' 버튼)에서 호출: 해당 축제가 열리는 달로 이동 + 목록에서 하이라이트
+async function focusFestival(contentId) {
+  const festival = festivals.find(item => item.contentid === contentId)
+  if (!festival) return
+
+  const { start } = getFestivalRange(festival)
+  if (start) {
+    currentMonth.value = new Date(start.getFullYear(), start.getMonth(), 1)
   }
 
+  // 달이 바뀌면서 목록이 다시 그려진 뒤에 스크롤해야 함
+  await nextTick()
   handleFestivalClick(festival)
 }
 
-// ============================================================================
-// 9. KPI 요청별 이동 처리
-// ============================================================================
-
-/**
- * 다가오는 축제 KPI
- *
- * 축제 개최 월로 이동한 뒤
- * 해당 축제 목록 카드까지 스크롤하고 하이라이트합니다.
- */
-async function moveToFestival(contentId) {
-  if (!contentId) {
-    return
-  }
-
-  const festival = festivals.find((item) => String(item.contentid) === String(contentId))
-
-  if (!festival) {
-    console.warn('이동할 축제를 찾을 수 없습니다.', contentId)
-
-    return
-  }
-
-  const startDate = parseYmd(festival.eventstartdate)
-
-  if (startDate) {
-    currentMonth.value = new Date(startDate.getFullYear(), startDate.getMonth(), 1)
-  }
-
-  await nextTick()
-
-  handleFestivalClick(festival)
-}
-
-/**
- * 가장 볼거리 많은 구 KPI
- *
- * 지도 영역까지 자동 스크롤한 뒤
- * 지도 중심을 선택한 구로 이동합니다.
- */
-async function moveToDistrict(districtName) {
-  if (!districtName) {
-    return
-  }
-
-  selectedFestivalId.value = null
-
-  await nextTick()
-
-  /*
-   * sticky 헤더에 지도가 가려지지 않도록
-   * 지도 wrapper에 scroll-margin-top을 적용했습니다.
-   */
-  mapSectionRef.value?.scrollIntoView({
-    behavior: 'smooth',
-    block: 'start',
-  })
-
-  /*
-   * 탭이 표시되고 스크롤이 시작된 다음
-   * 카카오 지도 크기와 중심을 다시 계산합니다.
-   */
-  window.setTimeout(() => {
-    mapPanelRef.value?.focusDistrict(districtName)
-  }, 350)
-}
-
-/**
- * 가장 활발한 축제월 KPI
- *
- * 해당 연도와 월로 캘린더를 이동합니다.
- * 캘린더, 축제 목록, 축제 지도 마커가 함께 변경됩니다.
- */
-async function moveToMonth(year, month) {
-  if (!year || !month) {
-    return
-  }
-
-  selectedFestivalId.value = null
-
-  currentMonth.value = new Date(year, month - 1, 1)
-
-  await nextTick()
-
-  mapPanelRef.value?.resetMap()
-}
-
-/**
- * 지금 진행 중인 축제 KPI
- *
- * 현재 월과 서울 전체 지도 위치로 초기화합니다.
- */
-async function moveToCurrentMonth() {
-  selectedFestivalId.value = null
-  currentMonth.value = new Date()
-
-  await nextTick()
-
-  mapPanelRef.value?.resetMap()
-}
-
-// ============================================================================
-// 10. App.vue에서 전달된 요청 분기
-// ============================================================================
-async function handleNavigationRequest(request) {
-  if (!request?.type) {
-    return
-  }
-
-  switch (request.type) {
-    case 'festival':
-      await moveToFestival(request.contentId)
-      break
-
-    case 'district':
-      await moveToDistrict(request.districtName)
-      break
-
-    case 'month':
-      await moveToMonth(request.year, request.month)
-      break
-
-    case 'current':
-      await moveToCurrentMonth()
-      break
-
-    default:
-      console.warn('지원하지 않는 캘린더 이동 요청입니다.', request)
-  }
-}
-
-/*
- * requestId를 감시하는 이유:
- * 같은 KPI를 연속으로 다시 눌러도 요청을 다시 실행하기 위함입니다.
- */
-watch(
-  () => props.navigationRequest?.requestId,
-  () => {
-    handleNavigationRequest(props.navigationRequest)
-  },
-  {
-    immediate: true,
-  },
-)
+defineExpose({ focusFestival })
 </script>
 
 <template>
   <div class="festival-dashboard">
-    <!-- ================================================================ -->
-    <!-- 상단 제목 -->
-    <!-- ================================================================ -->
     <div class="dashboard-header">
       <div>
         <p class="subtitle">서울 축제 캘린더</p>
-
         <h1 class="neon-title">축제 일정 & 지도</h1>
       </div>
-
       <div class="dashboard-meta">
-        <span class="month-label">
-          {{ currentMonthLabel }}
-        </span>
-
-        <strong class="festival-count"> {{ displayedFestivals.length }}개 축제 표시 </strong>
+        <span class="month-label">{{ currentMonthLabel }}</span>
+        <strong class="festival-count">{{ displayedFestivals.length }}개 축제 표시</strong>
       </div>
     </div>
 
-    <!-- ================================================================ -->
-    <!-- 캘린더 + 지도 -->
-    <!-- ================================================================ -->
+    <!-- 좌측 캘린더 + 우측 지도 -->
     <div class="grid-top">
-      <!-- 캘린더 -->
-      <CalendarPanel
+      <CalendarPanel 
         :month="currentMonth"
         :festivals="displayedFestivals"
         @month-change="handleMonthChange"
         @festival-click="handleFestivalClick"
       />
-
-      <!-- 지도 자동 스크롤 대상 -->
-      <div ref="mapSectionRef" class="map-scroll-target">
-        <MapPanel
-          ref="mapPanelRef"
-          :festivals="displayedFestivals"
-          :tour-spots="tourSpots"
-          :lodgings="lodgings"
-          @festival-select="handleMapFestivalSelect"
-        />
-      </div>
+      <MapPanel :festivals="displayedFestivals" :tour-spots="tourSpots" :lodgings="lodgings" @festival-select="handleMapFestivalSelect" />
     </div>
 
-    <!-- ================================================================ -->
-    <!-- 축제 목록 -->
-    <!-- ================================================================ -->
+    <!-- 아래 축제 목록 -->
     <div class="list-bottom">
       <h2 class="list-title">📋 축제 목록</h2>
-
-      <FestivalList :festivals="displayedFestivals" :selected-festival-id="selectedFestivalId" />
+      <FestivalList 
+        :festivals="displayedFestivals"
+        :selected-festival-id="selectedFestivalId"
+      />
     </div>
   </div>
 </template>
 
 <style scoped>
 .festival-dashboard {
-  width: 100%;
-}
-
-/*
- * 종로구 등 지역 KPI 클릭 시 sticky 헤더에
- * 지도 상단이 가려지지 않도록 스크롤 여백을 둡니다.
- */
-.map-scroll-target {
-  scroll-margin-top: 112px;
+  /* 탭 안에 끼워지는 컴포넌트라, 페이지 전체를 덮는 배경/높이는 부모(App.vue)가 담당 */
 }
 
 .dashboard-header {
@@ -435,10 +197,6 @@ watch(
   flex-direction: column;
   gap: 24px;
   margin-bottom: 32px;
-}
-
-.list-bottom {
-  width: 100%;
 }
 
 .list-title {

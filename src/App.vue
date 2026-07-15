@@ -1,11 +1,50 @@
 <script setup>
-import { nextTick, ref } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import FestivalDashboard from '@/views/FestivalDashboard.vue'
 
 import AnalyticsDashboard from '@/analytics/components/AnalyticsDashboard.vue'
 import ChatWidget from '@/components/ChatWidget.vue'
 
+import festivalData from '@/data/서울_축제공연행사.json'
+
 const activeTab = ref('main')
+const festivalDashboardRef = ref(null)
+const festivals = festivalData.items || []
+
+// 홈에 노출할 추천 축제 (contentid로 JSON에서 직접 조회 -> 날짜 하드코딩 제거)
+const FEATURED = [
+  { id: '1998564', badge: '★ Hot', badgeClass: 'bg-pink-600' },
+  { id: '2756396', badge: 'Night', badgeClass: 'bg-purple-600' },
+  { id: '4074598', badge: 'Nature', badgeClass: 'bg-blue-600' },
+]
+
+const featuredFestivals = computed(() =>
+  FEATURED.map((f) => {
+    const festival = festivals.find((item) => item.contentid === f.id)
+    return festival ? { ...f, festival } : null
+  }).filter(Boolean),
+)
+
+function formatYmd(str) {
+  if (!str || str.length < 8) return null
+  return `${str.slice(0, 4)}.${str.slice(4, 6)}.${str.slice(6, 8)}`
+}
+
+function formatDateRange(festival) {
+  const start = formatYmd(festival.eventstartdate)
+  if (!start) return '일정 미정'
+  const end = formatYmd(festival.eventenddate)
+  if (!end || end === start) return start
+  return `${start} ~ ${end}`
+}
+
+// 상세보기 -> 캘린더 탭 이동 + 해당 축제의 달로 이동 + 목록에서 하이라이트
+async function goToFestivalDetail(contentId) {
+  activeTab.value = 'calendar'
+  await nextTick()
+  festivalDashboardRef.value?.focusFestival(contentId)
+}
+
 const calendarNavigationRequest = ref(null)
 
 const tabs = [
@@ -144,12 +183,20 @@ async function handleDashboardCalendarNavigation(request) {
                   축제 일정 보러가기
                 </button>
 
+                                <button
+                  type="button"
+                  class="bg-gray-800/80 border border-gray-700 hover:bg-gray-700 px-6 py-3 rounded-xl font-bold transition"
+                  @click="switchTab('community')"
+                >
+                  커뮤니티 광장
+                </button>
+
                 <button
                   type="button"
                   class="bg-gray-800/80 border border-gray-700 hover:bg-gray-700 px-6 py-3 rounded-xl font-bold transition"
                   @click="switchTab('dashboard')"
                 >
-                  통계 분석
+                  데이터 분석
                 </button>
               </div>
             </div>
@@ -163,128 +210,50 @@ async function handleDashboardCalendarNavigation(request) {
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- 카드 1 -->
-            <article
-              class="festival-card bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-lg"
-            >
-              <div class="h-48 overflow-hidden relative">
-                <img
-                  src="https://tong.visitkorea.or.kr/cms/resource/86/4055386_image2_1.jpg"
-                  alt="궁중문화축전"
-                  class="w-full h-full object-cover"
-                />
+              <article
+                v-for="item in featuredFestivals"
+                :key="item.id"
+                class="festival-card bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-lg"
+              >
+                <div class="h-48 overflow-hidden relative">
+                  <img
+                    :src="item.festival.firstimage"
+                    :alt="item.festival.title"
+                    class="w-full h-full object-cover"
+                  />
 
-                <span
-                  class="absolute top-3 left-3 bg-pink-600 text-xs px-2.5 py-1 rounded-full font-bold"
-                >
-                  ★ Hot
-                </span>
-              </div>
-
-              <div class="p-5 space-y-3">
-                <span class="text-xs text-pink-400 font-bold"> 2026-05-06 </span>
-
-                <h3 class="text-lg font-extrabold text-white">궁중문화축전</h3>
-
-                <p class="text-xs text-gray-400">서울특별시 종로구 사직로 161</p>
-
-                <div
-                  class="pt-3 border-t border-gray-800 flex justify-between items-center text-xs"
-                >
-                  <span class="text-gray-500"> ☎ 1522-2295 </span>
-
-                  <button
-                    type="button"
-                    class="text-pink-500 hover:underline"
-                    @click="switchTab('calendar')"
+                  <span
+                    class="absolute top-3 left-3 text-xs px-2.5 py-1 rounded-full font-bold"
+                    :class="item.badgeClass"
                   >
-                    상세보기 →
-                  </button>
+                    {{ item.badge }}
+                  </span>
                 </div>
-              </div>
-            </article>
 
-            <!-- 카드 2 -->
-            <article
-              class="festival-card bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-lg"
-            >
-              <div class="h-48 overflow-hidden relative">
-                <img
-                  src="https://tong.visitkorea.or.kr/cms/resource/03/4073903_image2_1.jpg"
-                  alt="덕수궁 밤의 석조전"
-                  class="w-full h-full object-cover"
-                />
+                <div class="p-5 space-y-3">
+                  <span class="text-xs text-pink-400 font-bold">
+                    {{ formatDateRange(item.festival) }}
+                  </span>
 
-                <span
-                  class="absolute top-3 left-3 bg-purple-600 text-xs px-2.5 py-1 rounded-full font-bold"
-                >
-                  Night
-                </span>
-              </div>
+                  <h3 class="text-lg font-extrabold text-white">{{ item.festival.title }}</h3>
 
-              <div class="p-5 space-y-3">
-                <span class="text-xs text-pink-400 font-bold"> 2026-06-12 </span>
+                  <p class="text-xs text-gray-400">{{ item.festival.addr1 }}</p>
 
-                <h3 class="text-lg font-extrabold text-white">덕수궁 밤의 석조전</h3>
-
-                <p class="text-xs text-gray-400">서울특별시 중구 세종대로 99</p>
-
-                <div
-                  class="pt-3 border-t border-gray-800 flex justify-between items-center text-xs"
-                >
-                  <span class="text-gray-500"> ☎ 1522-2295 </span>
-
-                  <button
-                    type="button"
-                    class="text-pink-500 hover:underline"
-                    @click="switchTab('calendar')"
+                  <div
+                    class="pt-3 border-t border-gray-800 flex justify-between items-center text-xs"
                   >
-                    상세보기 →
-                  </button>
+                    <span class="text-gray-500">☎ {{ item.festival.tel || '정보 없음' }}</span>
+
+                    <button
+                      type="button"
+                      class="text-pink-500 hover:underline"
+                      @click="goToFestivalDetail(item.id)"
+                    >
+                      상세보기 →
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </article>
-
-            <!-- 카드 3 -->
-            <article
-              class="festival-card bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-lg"
-            >
-              <div class="h-48 overflow-hidden relative">
-                <img
-                  src="https://tong.visitkorea.or.kr/cms/resource/00/4074600_image2_1.jpg"
-                  alt="초안산 수국축제"
-                  class="w-full h-full object-cover"
-                />
-
-                <span
-                  class="absolute top-3 left-3 bg-blue-600 text-xs px-2.5 py-1 rounded-full font-bold"
-                >
-                  Nature
-                </span>
-              </div>
-
-              <div class="p-5 space-y-3">
-                <span class="text-xs text-pink-400 font-bold"> 2026-06-12 </span>
-
-                <h3 class="text-lg font-extrabold text-white">초안산 수국축제</h3>
-
-                <p class="text-xs text-gray-400">서울특별시 노원구 월계동 산46-3</p>
-
-                <div
-                  class="pt-3 border-t border-gray-800 flex justify-between items-center text-xs"
-                >
-                  <span class="text-gray-500"> ☎ 02-2116-7142 </span>
-
-                  <button
-                    type="button"
-                    class="text-pink-500 hover:underline"
-                    @click="switchTab('calendar')"
-                  >
-                    상세보기 →
-                  </button>
-                </div>
-              </div>
-            </article>
+              </article>
             </div>
           </div>
         </div>
@@ -294,7 +263,10 @@ async function handleDashboardCalendarNavigation(request) {
       <!-- 2. 축제 캘린더 탭 -->
       <!-- ================================================== -->
       <section v-show="activeTab === 'calendar'">
-        <FestivalDashboard :navigation-request="calendarNavigationRequest" />
+        <FestivalDashboard
+          ref="festivalDashboardRef"
+          :navigation-request="calendarNavigationRequest"
+        />
       </section>
 
       <!-- ================================================== -->
