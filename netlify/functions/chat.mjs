@@ -78,7 +78,8 @@ export const handler = async (event) => {
       },
       body: JSON.stringify({
         model: 'gpt-5-mini',
-        max_completion_tokens: 2000,
+        reasoning_effort: 'minimal',
+        max_completion_tokens: 4000,
         messages,
       }),
     })
