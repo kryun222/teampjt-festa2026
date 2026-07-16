@@ -1,44 +1,87 @@
-# TeamPJT
+# 🎪 SEOUL FESTA
 
-This template should help get you started developing with Vue 3 in Vite.
+서울시 축제·공연·행사 데이터를 기반으로 한 축제 정보 통합 웹 서비스입니다.
+지도·캘린더로 축제 일정을 한눈에 확인하고, 데이터 분석 대시보드로 트렌드를 살펴보고,
+AI 챗봇에게 궁금한 축제나 장소를 바로 물어볼 수 있습니다.
 
-## Recommended IDE Setup
+🔗 **배포 주소**: [https://teampjt-festa2026.netlify.app/](https://teampjt-festa2026.netlify.app/)
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## 📖 서비스 소개
 
-## Recommended Browser Setup
+서울에서 열리는 다양한 축제·공연·행사 정보가 여러 곳에 흩어져 있어 한눈에 파악하기 어렵다는 문제에서 출발한
+프로젝트입니다. **SEOUL FESTA**는 한국관광공사 공공 데이터를 기반으로 서울 전역의 축제 정보를 지도와 캘린더로
+시각화하고, 데이터 분석을 통해 트렌드를 보여주며, 방문객들이 서로 정보를 나눌 수 있는 커뮤니티까지 하나의
+웹 서비스 안에 담았습니다.
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+화면은 상단 탭으로 **홈 / 축제 캘린더 / 커뮤니티 광장 / 데이터 분석**의 4개 영역을 오가며, 우측 하단의
+플로팅 챗봇을 통해 언제든 궁금한 점을 물어볼 수 있습니다.
 
-## Customize configuration
+## ✨ 주요 기능
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+### 🏠 홈 / 메인
 
-## Project Setup
+- 방문자에게 먼저 보여줄 만한 추천 축제를 **Hot / New / Summer** 등의 배지와 함께 카드 형태로 노출
+- 카드 클릭 시 해당 축제의 상세 일정을 확인할 수 있도록 캘린더 탭으로 자동 이동
+
+### 🗓️ 축제 캘린더 & 지도
+
+- **FullCalendar** 기반 월간 캘린더로 날짜별 축제 일정을 한눈에 확인
+- **카카오맵** 연동 지도에서 축제·관광지·숙박 위치를 마커로 표시, 각 카테고리를 원하는 대로 켜고 끌 수 있는 토글 제공
+- 자치구(지역) 선택 시 캘린더·지도·목록이 함께 해당 지역 기준으로 필터링
+- 지도 마커 클릭 → 정보창에서 축제 상세로 바로 진입, 데이터 분석 대시보드의 KPI 카드에서도 특정 축제·지역·월로 캘린더를 바로 이동시켜 보여주는 상호 연동 지원
+
+### 💬 커뮤니티 광장
+
+- 이름·비밀번호만으로 누구나 글을 작성할 수 있는 간단한 자유게시판
+- 글/댓글 등록, **비밀번호 확인 후** 수정·삭제, 좋아요(❤️) 기능 제공
+- 작성한 글은 브라우저에 저장되어 새로고침해도 유지
+
+### 📊 데이터 분석 대시보드
+
+- 서울 축제 데이터를 요약한 핵심 지표(KPI) 카드 제공: **다가오는 축제 / 볼거리가 많은 자치구 / 가장 활발한 축제월** 등
+- **지금 / 어디로 / 언제 / 최신 소식** 4개의 서브탭으로 나뉜 교차 데이터 분석
+  - 지금 진행 중인 축제 현황
+  - 자치구별 콘텐츠(볼거리) 랭킹과, 축제·여행코스가 상대적으로 부족한 지역 발굴
+  - 월별·계절별 축제 개최 빈도 요약
+- KPI·랭킹 카드를 클릭하면 캘린더 탭의 관련 일정으로 바로 이동
+
+### 🤖 AI 챗봇
+
+- 화면 우측 하단의 말풍선 아이콘을 눌러 열 수 있는 플로팅 챗봇 위젯
+- 축제나 여행지에 대해 자유롭게 질문하면 서버리스 함수를 통해 AI가 답변
+- 대화 내역은 패널 안에서 스크롤되며, Enter로 전송 / Shift+Enter로 줄바꿈 지원
+
+## 📂 사용 데이터
+
+한국관광공사 국문 관광정보 서비스에서 제공하는 서울시 공공 데이터를 기반으로 서비스가 동작합니다.
+
+- `서울_축제공연행사.json` — 축제·공연·행사 정보
+- `서울_관광지.json` — 관광지 정보
+- `서울_숙박.json` — 숙박시설 정보
+- `서울_여행코스.json` — 추천 여행 코스
+
+## 🛠️ 기술 스택 (요약)
+
+Vue 3 + Vite 기반 SPA이며, Pinia(상태 관리) · FullCalendar(캘린더) · Kakao Maps / Leaflet(지도) ·
+Chart.js(차트) · OpenAI API + Netlify Functions(챗봇 서버리스 연동)로 구성되어 있고, Netlify를 통해 배포됩니다.
+
+## 🚀 실행 방법
 
 ```sh
-npm install
+npm install       # 설치
+npm run dev       # 개발 서버 (Hot-Reload)
+npm run build     # 프로덕션 빌드
+npm run preview   # 빌드 결과 미리보기
 ```
 
-### Compile and Hot-Reload for Development
+> 챗봇 기능은 Netlify Functions를 통해 OpenAI API를 호출하므로, 로컬 실행 시 별도의 API 키 환경 변수 설정이 필요합니다.
 
-```sh
-npm run dev
-```
+## 🌐 배포
 
-### Compile and Minify for Production
+Netlify를 통해 배포되며(`npm run build` → `dist` 게시), SPA 라우팅과 `/api/*` → Netlify Functions 프록시가 설정되어 있습니다.
 
-```sh
-npm run build
-```
+- **Live Demo**: https://teampjt-festa2026.netlify.app/
 
-### Lint with [ESLint](https://eslint.org/)
+## 📄 출처
 
-```sh
-npm run lint
-```
+Source Data: 한국관광공사 국문 관광정보 서비스
